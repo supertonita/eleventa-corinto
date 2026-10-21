@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comprobante Digital - Super Toñita Metapán</title>
+  
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCdGA4uhxWNSPOQ-9AsDiXXA-OLTygkU3U",
+      authDomain: "puntodeventa-b26f5.firebaseapp.com",
+      databaseURL: "https://puntodeventa-b26f5-default-rtdb.firebaseio.com",
+      projectId: "puntodeventa-b26f5",
+      storageBucket: "puntodeventa-b26f5.firebasestorage.app",
+      messagingSenderId: "282948666139",
+      appId: "1:282948666139:web:8b69461b5192d529d849be",
+      measurementId: "G-BVC76ZPZ4L"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function cargarTicketDigital() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const folio = urlParams.get('folio');
+      const container = document.getElementById('ticketContainer');
+
+      if (!folio) {
+        container.innerHTML = '<p style="color:red; text-align:center;">Folio no especificado o enlace inválido.</p>';
+        return;
+      }
+
+      try {
+        let venta = null;
+
+        // Búsqueda 1: En la colección "tickets_digitales" por ID del documento
+        const docRef = doc(db, "tickets_digitales", folio);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          venta = docSnap.data();
+        } else {
+          // Búsqueda 2: En la colección "ventas" por ID de documento
+          const docVentaRef = doc(db, "ventas", folio);
+          const docVentaSnap = await getDoc(docVentaRef);
+          
+          if (docVentaSnap.exists()) {
+            venta = docVentaSnap.data();
+          } else {
+            // Búsqueda 3: Filtrando por el campo "folio" dentro de "ventas"
+            const q = query(collection(db, "ventas"), where("folio", "==", folio));
+            const querySnap = await getDocs(q);
+            if (!querySnap.empty) {
+              venta = querySnap.docs[0].data();
+            }
+          }
+        }
+
+        if (venta) {
+          renderizarTicket(venta);
+        } else {
+          container.innerHTML = `<p style="text-align:center; padding: 20px;">No se encontró el ticket con el folio: <b>${folio}</b>.<br><br><small style="color:#777;">Haz una nueva venta de prueba para verificar.</small></p>`;
+        }
+      } catch (error) {
+        console.error("Error al buscar ticket:", error);
+        container.innerHTML = '<p style="color:red; text-align:center;">Error al conectar con la base de datos.</p>';
+      }
+    }
+
+    function renderizarTicket(venta) {
+      const d = new Date(venta.fecha);
+      const fechaStr = d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const horaStr = d.toLocaleTimeString('es-US', { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase();
+      const totalArticulos = (venta.items || []).reduce((acc, i) => acc + (i.cantidad || 1), 0);
+
+      let htmlItems = (venta.items || []).map(i => `
+        <tr>
+          <td style="padding: 6px 0; border-bottom: 1px dashed #eee;">${i.cantidad.toFixed(2)}${i.unidad === 'LB' ? 'lb' : ''}</td>
+          <td style="padding: 6px 0; border-bottom: 1px dashed #eee;">${i.descripcion}</td>
+          <td style="padding: 6px 0; border-bottom: 1px dashed #eee; text-align: right;">$${(i.cantidad * i.precio).toFixed(2)}</td>
+        </tr>
+      `).join('');
+
+      document.getElementById('ticketContainer').innerHTML = `
+        <div style="text-align:center; font-family:'Georgia',serif; font-style:italic; font-size:22px; font-weight:bold; color:#1d528d; margin-bottom:4px;">Super Toñita - Metapán</div>
+        <div style="text-align:center; font-size:12px; color:#666; margin-bottom:12px;">Comprobante Digital de Compra</div>
+        
+        <div style="font-size:13px; color:#333; margin-bottom:12px; line-height:1.4;">
+          <b>Folio:</b> ${venta.folio}<br>
+          <b>Fecha:</b> ${fechaStr} ${horaStr}<br>
+          <b>Cajero:</b> ${venta.cajero} (${venta.caja || 'Caja 1'})
+        </div>
+
+        <table style="width:100%; border-collapse:collapse; font-size:13px; margin-bottom:12px;">
+          <thead>
+            <tr style="border-bottom:2px solid #ddd; text-align:left;">
+              <th style="padding-bottom:4px;">Cant.</th>
+              <th style="padding-bottom:4px;">Descripción</th>
+              <th style="padding-bottom:4px; text-align:right;">Importe</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${htmlItems}
+          </tbody>
+        </table>
+
+        <div style="font-size:13px; color:#555; margin-bottom:12px;">
+          <b>Total de Artículos:</b> ${totalArticulos.toFixed(2)}
+        </div>
+
+        <div style="text-align:right; font-size:15px; line-height:1.5; border-top:2px solid #ddd; padding-top:8px;">
+          <div><b>Subtotal:</b> $${(venta.subtotal || venta.total).toFixed(2)}</div>
+          ${venta.descuento > 0 ? `<div><b>Descuento:</b> -$${venta.descuento.toFixed(2)}</div>` : ''}
+          <div style="font-size:20px; color:#1d528d; font-weight:bold;">Total: $${venta.total.toFixed(2)}</div>
+          <div><b>Pago con:</b> $${(venta.pagaCon || venta.total).toFixed(2)}</div>
+          <div><b>Cambio:</b> $${(venta.pagaCon ? (venta.pagaCon - venta.total) : 0).toFixed(2)}</div>
+        </div>
+
+        <div style="margin-top:20px; text-align:center; background:#e8f5e9; color:#2e7d32; padding:10px; border-radius:4px; font-weight:bold;">
+          ✨ ¡Has acumulado +${Math.floor(venta.total)} puntos en esta compra!
+        </div>
+      `;
+    }
+
+    window.addEventListener('DOMContentLoaded', cargarTicketDigital);
+  </script>
+
+  <style>
+    body { background: #f4f6f9; font-family: 'Segoe UI', Tahoma, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+    .ticket-card { background: #fff; width: 100%; max-width: 480px; padding: 25px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 5px solid #1d528d; }
+  </style>
+</head>
+<body>
+  <div class="ticket-card" id="ticketContainer">
+    <div style="text-align:center; padding: 20px; color:#666;">Cargando comprobante digital...</div>
+  </div>
+</body>
+</html>
