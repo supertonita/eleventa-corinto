@@ -6,6 +6,7 @@
   <title>eleventa POS Web - Super Toñita (Corinto)</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -113,12 +114,21 @@
 
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 100; }
     .modal-overlay.active { display: flex; }
-    .cobro-dialog { background: #e8eef5; border: 1px solid #7f9db9; width: 620px; display: flex; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-radius: 4px; overflow: hidden; }
+    .cobro-dialog { background: #e8eef5; border: 1px solid #7f9db9; width: 680px; display: flex; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-radius: 4px; overflow: hidden; }
     .cobro-main { flex: 2; padding: 20px; background: #f4f7fa; border-right: 1px solid #c0cbd9; }
-    .cobro-sidebar { flex: 1; padding: 15px; background: #e8eef5; display: flex; flex-direction: column; gap: 10px; }
+    .cobro-sidebar { flex: 1; padding: 15px; background: #e8eef5; display: flex; flex-direction: column; gap: 8px; }
+
+    #printAreaContainer { display: none; }
+    @media print {
+      body * { visibility: hidden; }
+      #printAreaContainer, #printAreaContainer * { visibility: visible; }
+      #printAreaContainer { display: block !important; position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; }
+    }
   </style>
 </head>
 <body>
+
+  <div id="printAreaContainer"></div>
 
   <!-- PANTALLA 1: LOGIN -->
   <div id="loginScreen" class="overlay-screen">
@@ -162,6 +172,7 @@
     <div class="nav-buttons">
       <button class="nav-btn active" id="navF1" onclick="switchNav('posView')">🛒 F1 Ventas</button>
       <button class="nav-btn" id="navF3" onclick="switchNav('productsView')">📦 F3 Productos</button>
+      <button class="nav-btn" id="navPromos" onclick="switchNav('promosView')">🏷️ Promos</button>
       <button class="nav-btn" id="navHistorial" onclick="switchNav('historialView')">📜 Historial Tickets</button>
       <button class="nav-btn" id="navCorte" onclick="switchNav('corteView')">📋 Corte</button>
       <button class="nav-btn" id="navReportes" onclick="switchNav('reportesView')">📊 Reportes</button>
@@ -210,7 +221,7 @@
               <th style="width: 12%;">Precio</th>
               <th style="width: 8%;">Cant.</th>
               <th style="width: 12%;">Importe</th>
-              <th style="width: 18%;">Ajuste </th>
+              <th style="width: 18%;">Ajuste</th>
             </tr>
           </thead>
           <tbody id="cartTableBody"></tbody>
@@ -321,6 +332,45 @@
               </tr>
             </thead>
             <tbody id="catalogoTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- VISTA NUEVA: PROMOCIONES Y OFERTAS -->
+    <section id="promosView" class="view-section">
+      <div class="title-bar-yellow">GESTIÓN DE PROMOCIONES Y OFERTAS - CORINTO</div>
+      <div style="padding: 20px; display: grid; grid-template-columns: 350px 1fr; gap: 20px;">
+        <div style="background: #f8fafc; border: 1px solid #d0d7e1; padding: 15px; border-radius: 4px;">
+          <h3 style="color: var(--accent-blue); margin-bottom: 12px;">🏷️ Registrar Promoción</h3>
+          <form id="formPromo" onsubmit="guardarPromocion(event)">
+            <div class="field-group">
+              <label>Título de la Oferta / Promo:</label>
+              <input type="text" id="promoTitulo" required placeholder="Ej: 2x1 en Bebidas o 15% en Lácteos">
+            </div>
+            <div class="field-group">
+              <label>Tipo de Promoción:</label>
+              <select id="promoTipo">
+                <option value="descuento_depto">Descuento por Departamento</option>
+                <option value="precio_especial">Precio Especial por Código</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label>Código o Departamento Afectado:</label>
+              <input type="text" id="promoFiltro" required placeholder="Ej: Bebidas o Código de barras">
+            </div>
+            <div class="field-group">
+              <label>Valor de Descuento (% o monto):</label>
+              <input type="number" id="promoValor" step="0.01" required value="10">
+            </div>
+            <button type="submit" class="btn-main" style="background:#28a745; margin-top:10px;">✔ Activar Promoción</button>
+          </form>
+        </div>
+
+        <div class="table-container" style="border: 1px solid #d0d7e1;">
+          <table>
+            <thead><tr><th>Título de la Promoción</th><th>Tipo</th><th>Filtro / Objetivo</th><th>Valor</th><th>Acciones</th></tr></thead>
+            <tbody id="promosTableBody"></tbody>
           </table>
         </div>
       </div>
@@ -488,8 +538,8 @@
           <form id="formConfigTicket" onsubmit="guardarConfigTicket(event)" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
             <div>
               <div class="field-group"><label>Nombre de la Empresa / Sucursal:</label><input type="text" id="cfgEmpresa" value="Super Toñita - Corinto" required></div>
-              <div class="field-group"><label>Dirección Física / Ubicación:</label><input type="text" id="cfgDireccion" value="Corinto"></div>
-              <div class="field-group"><label>RFC / Registro Fiscal / Teléfono:</label><input type="text" id="cfgTelefono"></div>
+              <div class="field-group"><label>Dirección Física / Ubicación:</label><input type="text" id="cfgDireccion" value="Corinto, Morazán"></div>
+              <div class="field-group"><label>RFC / Registro Fiscal / Teléfono:</label><input type="text" id="cfgTelefono" value="Tel: Corinto"></div>
               <div class="field-group"><label>Mensaje de Pie de Ticket (Gracias por su compra...):</label><textarea id="cfgMensajePie" rows="3">Gracias por su compra
 vuelva pronto</textarea></div>
             </div>
@@ -544,11 +594,17 @@ vuelva pronto</textarea></div>
 
   <div class="modal-overlay" id="descuentoModal">
     <div class="card-dialog">
-      <h2>🏷️ Aplicar Descuento a la Venta</h2>
-      <div class="field-group"><label>Tipo:</label><select id="tipoDescuentoSelect"><option value="porcentaje">Porcentaje (%)</option><option value="fijo">Monto Fijo ($)</option></select></div>
-      <div class="field-group"><label>Valor:</label><input type="number" id="valorDescuentoInput" value="5" step="0.01"></div>
-      <button class="btn-main" onclick="aplicarDescuentoTicket()">Aplicar</button>
-      <button class="btn-main" style="background:#6c757d; margin-top:5px;" onclick="cerrarModalDescuento()">Cancelar</button>
+      <h2>🏷️ Aplicar Descuento al Ticket</h2>
+      <div class="field-group">
+        <label>Descuento por Porcentaje (%):</label>
+        <input type="number" id="descPorcentajeInput" placeholder="Ej: 10" step="0.01" value="" oninput="limpiarCampoContrario('porcentaje')">
+      </div>
+      <div class="field-group">
+        <label>Descuento por Monto Fijo ($):</label>
+        <input type="number" id="descFijoInput" placeholder="Ej: 1.50" step="0.01" value="" oninput="limpiarCampoContrario('fijo')">
+      </div>
+      <button class="btn-main" onclick="aplicarDescuentoTicketMejorado()">✔ Aplicar Descuento</button>
+      <button class="btn-main" style="background:#6c757d; margin-top:5px;" onclick="cerrarModalDescuento()">Cancelar (ESC)</button>
     </div>
   </div>
 
@@ -556,15 +612,33 @@ vuelva pronto</textarea></div>
     <div class="cobro-dialog">
       <div class="cobro-main">
         <div style="font-weight: bold; color: var(--accent-blue); margin-bottom: 5px;">COBRAR</div>
-        <div style="font-size: 38px; font-weight: bold; color: #1d528d; text-align: center; margin-bottom: 15px;" id="modalCobroTotal">$0.00</div>
-        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-          <div><label style="font-size: 16px; font-weight: bold;">Pagó Con: $</label><input type="number" id="cobroPagaCon" step="0.01" style="font-size: 22px; font-weight: bold; width: 150px; text-align: right;" oninput="calcularCambioCobro()"></div>
-          <div style="font-weight: bold; font-size: 18px; margin-top:10px;">Su Cambio: <span id="cobroCambio" style="color: #1d528d;">$0.00</span></div>
+        <div style="font-size: 38px; font-weight: bold; color: #1d528d; text-align: center; margin-bottom: 12px;" id="modalCobroTotal">$0.00</div>
+        
+        <div style="margin: 6px 0; background: #fff; padding: 10px; border-radius: 4px; border: 1px solid #ccc; position: relative;">
+          <label style="font-size: 11px; font-weight: bold; color: #1d528d; margin-bottom: 6px; display: block;">DATOS DEL CLIENTE (BÚSQUEDA AUTOMÁTICA O NUEVO):</label>
+          
+          <div style="display: flex; gap: 8px; margin-bottom: 6px;">
+            <div style="flex: 1;">
+              <label style="font-size: 10px; color: #555;">Número de Teléfono:</label>
+              <input type="tel" id="inputCobroTelefono" placeholder="Ej: 70092996" autocomplete="off" oninput="buscarClientePorTelefono()" style="width: 100%; padding: 5px; font-size: 12px; border: 1px solid #7f9db9;">
+            </div>
+            <div style="flex: 1.5;">
+              <label style="font-size: 10px; color: #555;">Nombre del Cliente:</label>
+              <input type="text" id="inputCobroNombre" placeholder="Ej: Juan Pérez" autocomplete="off" oninput="buscarClientePorNombre()" style="width: 100%; padding: 5px; font-size: 12px; border: 1px solid #7f9db9;">
+            </div>
+          </div>
+
+          <div id="listaSugerenciasClientes" style="position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #7f9db9; max-height: 120px; overflow-y: auto; display: none; z-index: 50; font-size: 11px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);"></div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 10px;">
+          <div><label style="font-size: 14px; font-weight: bold;">Pagó Con: $</label><input type="number" id="cobroPagaCon" step="0.01" style="font-size: 18px; font-weight: bold; width: 130px; text-align: right;" oninput="calcularCambioCobro()"></div>
+          <div style="font-weight: bold; font-size: 16px;">Su Cambio: <span id="cobroCambio" style="color: #1d528d;">$0.00</span></div>
         </div>
       </div>
       <div class="cobro-sidebar">
-        <button class="op-btn" style="background: #dbe8f6; border-color: #1d528d; padding:10px;" onclick="confirmarVenta(true)">🖨️ F1 - Cobrar e Imprimir</button>
-        <button class="op-btn" style="padding:10px;" onclick="confirmarVenta(false)">⚡ F2 - Cobrar sin Imprimir</button>
+        <button class="op-btn" style="background: #dbe8f6; border-color: #1d528d; padding:7px;" onclick="ejecutarCobroInteligente(true)">🖨️ F1 - Cobrar e Imprimir</button>
+        <button class="op-btn" style="padding:7px;" onclick="ejecutarCobroInteligente(false)">⚡ F2 - Cobrar sin Imprimir</button>
         <button class="op-btn" style="margin-top: auto;" onclick="cerrarModalCobro()">🚫 ESC - Cancelar</button>
       </div>
     </div>
@@ -577,6 +651,8 @@ vuelva pronto</textarea></div>
 
     let departamentos = JSON.parse(localStorage.getItem('pos_deptos_corinto') || '["Abarrotes", "Bebidas", "Carnes", "Lácteos"]');
     let productos = JSON.parse(localStorage.getItem('pos_productos_cache_corinto') || "[]");
+    let promociones = JSON.parse(localStorage.getItem('pos_promos_corinto') || "[]");
+    let registeredClients = JSON.parse(localStorage.getItem('pos_clientes_fidelidad_cache_corinto') || "[]");
     let tickets = [{ id: 1, nombre: "Ticket 1", cart: [], descuento: 0, tipoDescuento: 'porcentaje', selectedIndex: -1 }];
     let activeTicketId = 1;
     let historialVentas = JSON.parse(localStorage.getItem('pos_historial_ventas_corinto') || "[]");
@@ -584,8 +660,8 @@ vuelva pronto</textarea></div>
 
     let configTicket = JSON.parse(localStorage.getItem('pos_config_ticket_corinto') || 'null') || {
       empresa: "Super Toñita - Corinto",
-      direccion: "Corinto",
-      telefono: "Tel: 0000-0000",
+      direccion: "Corinto, Morazán",
+      telefono: "Tel: Corinto",
       mensajePie: "Gracias por su compra\nvuelva pronto",
       logoBase64: ""
     };
@@ -627,24 +703,17 @@ vuelva pronto</textarea></div>
       document.getElementById('permConfig').checked = esAdmin;
     }
 
-    // PROCESADOR DE BÁSCULA PARA CORINTO (Formato: 000001 + 0 + peso)
     function procesarCodigoBalanzaCorinto(val) {
       val = String(val).trim();
-      // Ejemplo: si longitud es mayor a 6 y tiene separador de balanza o estructura de peso variable
       if (val.length >= 7) {
-        // Buscamos si coincide con patrón de peso variable (ej: empieza con ceros y tiene separador o longitud fija de báscula)
-        // Estructura solicitada: [Ceros + CodProd] [0] [Peso en lb] (ej: 0000010100 -> prod 1, peso 1.00 o similar)
-        // Implementación genérica robusta para formato 0000010100 o con asterisco manual:
         let parts = val.split('*');
         if (parts.length === 2) {
           return { codigo: parts[1].trim(), cantidad: parseFloat(parts[0]) || 1 };
         }
-        
-        // Detectar formato balanza pegado 00000X0YYYY (Ej: 6 dígitos código base + 1 separador '0' + 3 dígitos peso)
         if (val.startsWith('0000') && val.length >= 8) {
           let codProd = val.substring(4, 6).replace(/^0+/, '');
           let pesoStr = val.substring(7);
-          let pesoLb = parseInt(pesoStr, 10) / 100; // Asumiendo formato 2 decimales en lb
+          let pesoLb = parseInt(pesoStr, 10) / 100;
           if (!isNaN(pesoLb) && pesoLb > 0) {
             return { codigo: codProd, cantidad: pesoLb };
           }
@@ -672,12 +741,62 @@ vuelva pronto</textarea></div>
       }
     }
 
+    function guardarPromocion(e) {
+      e.preventDefault();
+      const titulo = document.getElementById('promoTitulo').value.trim();
+      const tipo = document.getElementById('promoTipo').value;
+      const filtro = document.getElementById('promoFiltro').value.trim();
+      const valor = parseFloat(document.getElementById('promoValor').value) || 0;
+
+      promociones.push({ id: Date.now(), titulo, tipo, filtro, valor });
+      localStorage.setItem('pos_promos_corinto', JSON.stringify(promociones));
+      alert("¡Promoción agregada exitosamente en Corinto!");
+      document.getElementById('formPromo').reset();
+      renderTablaPromos();
+    }
+
+    function eliminarPromo(id) {
+      if (confirm("¿Deseas eliminar esta promoción?")) {
+        promociones = promociones.filter(p => p.id !== id);
+        localStorage.setItem('pos_promos_corinto', JSON.stringify(promociones));
+        renderTablaPromos();
+      }
+    }
+
+    function renderTablaPromos() {
+      const tbody = document.getElementById('promosTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = promociones.map(p => `
+        <tr>
+          <td><b>${p.titulo}</b></td>
+          <td>${p.tipo === 'descuento_depto' ? 'Desc. Depto' : 'Precio Especial'}</td>
+          <td>${p.filtro}</td>
+          <td>${p.valor}</td>
+          <td><button class="op-btn" style="color:red;" onclick="eliminarPromo(${p.id})">🗑️ Eliminar</button></td>
+        </tr>
+      `).join('') || '<tr><td colspan="5">No hay promociones activas.</td></tr>';
+    }
+
+    function aplicarPromocionesACart(cart) {
+      return cart.map(item => {
+        let precioFinal = item.precio;
+        promociones.forEach(promo => {
+          if (promo.tipo === 'descuento_depto' && item.departamento && item.departamento.toLowerCase() === promo.filtro.toLowerCase()) {
+            precioFinal = item.precio * (1 - (promo.valor / 100));
+          } else if (promo.tipo === 'precio_especial' && productoCoincideConCodigo(item, promo.filtro)) {
+            precioFinal = promo.valor;
+          }
+        });
+        return { ...item, precioAplicado: precioFinal };
+      });
+    }
+
     function cargarConfigTicketUI() {
       const emp = document.getElementById('cfgEmpresa');
       if (!emp) return;
       emp.value = configTicket.empresa || 'Super Toñita - Corinto';
       document.getElementById('cfgDireccion').value = configTicket.direccion || '';
-      document.getElementById('cfgTelefono').value = configTicket.telefono || '';
+      document.getElementById('cfgTelefono').value = configTicket.telefono || 'Tel: Corinto';
       document.getElementById('cfgMensajePie').value = configTicket.mensajePie || '';
       
       const imgPrev = document.getElementById('cfgLogoPreview');
@@ -736,6 +855,7 @@ vuelva pronto</textarea></div>
       renderDepartamentosSelect();
       renderLoginUsers();
       renderTablaUsuarios();
+      renderTablaPromos();
       cargarConfigTicketUI();
 
       const hoyStr = new Date().toISOString().slice(0, 10);
@@ -778,6 +898,18 @@ vuelva pronto</textarea></div>
             productos = loaded;
             localStorage.setItem('pos_productos_cache_corinto', JSON.stringify(productos));
             renderTablaCatalogo();
+          });
+
+          window.onSnapshot(window.collection(window.db, "clients"), (snapshot) => {
+            let loadedClients = [];
+            snapshot.forEach(docSnap => {
+              const d = docSnap.data();
+              if (d && d.name && d.phone) {
+                loadedClients.push({ id: docSnap.id, name: d.name, phone: d.phone, points: d.points || 0 });
+              }
+            });
+            registeredClients = loadedClients;
+            localStorage.setItem('pos_clientes_fidelidad_cache_corinto', JSON.stringify(registeredClients));
           });
         }
       }, 200);
@@ -833,6 +965,7 @@ vuelva pronto</textarea></div>
 
       document.getElementById('navF1').style.display = (p.ventas !== false) ? 'flex' : 'none';
       document.getElementById('navF3').style.display = (p.productos || esAdminGlobal) ? 'flex' : 'none';
+      document.getElementById('navPromos').style.display = (p.productos || esAdminGlobal) ? 'flex' : 'none';
       document.getElementById('navHistorial').style.display = (p.historial || esAdminGlobal) ? 'flex' : 'none';
       document.getElementById('navCorte').style.display = (p.corte !== false) ? 'flex' : 'none';
       document.getElementById('navReportes').style.display = (p.reportes || esAdminGlobal) ? 'flex' : 'none';
@@ -867,6 +1000,7 @@ vuelva pronto</textarea></div>
       document.getElementById(viewId).classList.add('active');
       if (viewId === 'posView') { renderTicketTabs(); renderCart(); focusBarcode(); }
       if (viewId === 'productsView') { mostrarSubVistaProd('catalogo'); }
+      if (viewId === 'promosView') { renderTablaPromos(); }
       if (viewId === 'historialView') { filtrarHistorialTickets(); }
       if (viewId === 'corteView') { actualizarCorteCaja(); }
       if (viewId === 'reportesView') { toggleRangoFechasReporte(); }
@@ -925,13 +1059,27 @@ vuelva pronto</textarea></div>
       }
 
       const codigoBusqueda = codigo.trim();
-      const prod = productos.find(p => productoCoincideConCodigo(p, codigoBusqueda));
+      let prod = productos.find(p => productoCoincideConCodigo(p, codigoBusqueda));
       const t = getActiveTicket();
 
       if (prod) {
+        let precioAplicado = prod.precio;
+        promociones.forEach(promo => {
+          if (promo.tipo === 'descuento_depto' && prod.departamento && prod.departamento.toLowerCase() === promo.filtro.toLowerCase()) {
+            precioAplicado = prod.precio * (1 - (promo.valor / 100));
+          } else if (promo.tipo === 'precio_especial' && productoCoincideConCodigo(prod, promo.filtro)) {
+            precioAplicado = promo.valor;
+          }
+        });
+
         const idx = t.cart.findIndex(i => productoCoincideConCodigo(i, codigoBusqueda));
-        if (idx > -1) { t.cart[idx].cantidad += cantidad; t.selectedIndex = idx; }
-        else { t.cart.push({ ...prod, cantidad }); t.selectedIndex = t.cart.length - 1; }
+        if (idx > -1) { 
+          t.cart[idx].cantidad += cantidad; 
+          t.selectedIndex = idx; 
+        } else { 
+          t.cart.push({ ...prod, precioAplicado, cantidad }); 
+          t.selectedIndex = t.cart.length - 1; 
+        }
         renderCart(); renderTicketTabs();
       } else { alert("Producto no encontrado."); }
       inputEl.value = '';
@@ -945,13 +1093,18 @@ vuelva pronto</textarea></div>
       const t = getActiveTicket();
       if (t.selectedIndex >= t.cart.length) t.selectedIndex = t.cart.length - 1;
 
+      t.cart = aplicarPromocionesACart(t.cart);
+
       t.cart.forEach((item, index) => {
-        const importe = item.precio * item.cantidad;
+        const precioVenta = item.precioAplicado !== undefined ? item.precioAplicado : item.precio;
+        const importe = precioVenta * item.cantidad;
         subtotal += importe; count += item.cantidad;
         const unidadLabel = item.unidad === 'LB' ? ' lb' : '';
+        let etiquetaPromo = item.precioAplicado < item.precio ? ` <span style="color:green; font-size:10px;">(Promo)</span>` : '';
+
         tbody.innerHTML += `
           <tr class="${index === t.selectedIndex ? 'selected-row' : ''}" onclick="seleccionarFilaCarrito(${index})">
-            <td>${obtenerPrimerCodigo(item.codigo)}</td><td>${item.descripcion}</td><td>$${item.precio.toFixed(2)}</td><td>${item.cantidad.toFixed(2)}${unidadLabel}</td><td>$${importe.toFixed(2)}</td>
+            <td>${obtenerPrimerCodigo(item.codigo)}</td><td>${item.descripcion}${etiquetaPromo}</td><td>$${precioVenta.toFixed(2)}</td><td>${item.cantidad.toFixed(2)}${unidadLabel}</td><td>$${importe.toFixed(2)}</td>
             <td>
               <button class="op-btn" onclick="modCantidad(${index}, 1); event.stopPropagation();">+</button>
               <button class="op-btn" onclick="modCantidad(${index}, -1); event.stopPropagation();">-</button>
@@ -1002,8 +1155,8 @@ vuelva pronto</textarea></div>
       }
 
       if (modalCobro) {
-        if (e.key === 'F1') { e.preventDefault(); confirmarVenta(true); return; }
-        if (e.key === 'F2') { e.preventDefault(); confirmarVenta(false); return; }
+        if (e.key === 'F1') { e.preventDefault(); ejecutarCobroInteligente(true); return; }
+        if (e.key === 'F2') { e.preventDefault(); ejecutarCobroInteligente(false); return; }
         if (e.key === 'Escape') { cerrarModalCobro(); return; }
       }
 
@@ -1225,24 +1378,64 @@ vuelva pronto</textarea></div>
       `).join('');
     }
 
-    function abrirModalDescuento() { document.getElementById('descuentoModal').classList.add('active'); }
-    function cerrarModalDescuento() { document.getElementById('descuentoModal').classList.remove('active'); focusBarcode(); }
-    function aplicarDescuentoTicket() {
+    function abrirModalDescuento() {
       const t = getActiveTicket();
-      t.tipoDescuento = document.getElementById('tipoDescuentoSelect').value;
-      t.descuento = parseFloat(document.getElementById('valorDescuentoInput').value) || 0;
-      renderCart(); cerrarModalDescuento();
+      document.getElementById('descPorcentajeInput').value = (t.tipoDescuento === 'porcentaje' && t.descuento > 0) ? t.descuento : '';
+      document.getElementById('descFijoInput').value = (t.tipoDescuento === 'fijo' && t.descuento > 0) ? t.descuento : '';
+      
+      document.getElementById('descuentoModal').classList.add('active');
+      setTimeout(() => document.getElementById('descPorcentajeInput').focus(), 100);
+    }
+
+    function cerrarModalDescuento() {
+      document.getElementById('descuentoModal').classList.remove('active');
+      focusBarcode();
+    }
+
+    function limpiarCampoContrario(tipo) {
+      if (tipo === 'porcentaje') {
+        const val = document.getElementById('descPorcentajeInput').value;
+        if (val !== '') document.getElementById('descFijoInput').value = '';
+      } else {
+        const val = document.getElementById('descFijoInput').value;
+        if (val !== '') document.getElementById('descPorcentajeInput').value = '';
+      }
+    }
+
+    function aplicarDescuentoTicketMejorado() {
+      const porcVal = parseFloat(document.getElementById('descPorcentajeInput').value) || 0;
+      const fijoVal = parseFloat(document.getElementById('descFijoInput').value) || 0;
+      const t = getActiveTicket();
+
+      if (porcVal > 0) {
+        t.tipoDescuento = 'porcentaje';
+        t.descuento = porcVal;
+      } else if (fijoVal > 0) {
+        t.tipoDescuento = 'fijo';
+        t.descuento = fijoVal;
+      } else {
+        t.tipoDescuento = 'porcentaje';
+        t.descuento = 0;
+      }
+
+      renderCart();
+      cerrarModalDescuento();
     }
 
     function abrirModalCobro() {
       const t = getActiveTicket();
       if (t.cart.length === 0) return alert("El carrito está vacío.");
-      let subtotal = t.cart.reduce((a,i) => a + (i.precio * i.cantidad), 0);
+      let subtotal = t.cart.reduce((a,i) => a + ((i.precioAplicado !== undefined ? i.precioAplicado : i.precio) * i.cantidad), 0);
       let desc = t.tipoDescuento === 'porcentaje' ? (subtotal * (t.descuento/100)) : t.descuento;
       let total = Math.max(0, subtotal - desc);
       document.getElementById('modalCobroTotal').innerText = `$${total.toFixed(2)}`;
       const inputPaga = document.getElementById('cobroPagaCon');
       inputPaga.value = total.toFixed(2);
+      
+      document.getElementById('inputCobroTelefono').value = '';
+      document.getElementById('inputCobroNombre').value = '';
+      document.getElementById('listaSugerenciasClientes').style.display = 'none';
+
       document.getElementById('cobroModal').classList.add('active');
       setTimeout(() => { inputPaga.focus(); inputPaga.select(); }, 150);
       calcularCambioCobro();
@@ -1258,9 +1451,123 @@ vuelva pronto</textarea></div>
       document.getElementById('cobroCambio').innerText = `$${cambio.toFixed(2)}`;
     }
 
-    function confirmarVenta(imprimir) {
+    function buscarClientePorTelefono() {
+      const val = document.getElementById('inputCobroTelefono').value.toLowerCase().trim();
+      const contenedor = document.getElementById('listaSugerenciasClientes');
+      
+      if (!val || val.length < 2) {
+        contenedor.style.display = 'none';
+        return;
+      }
+
+      const coincidencias = registeredClients.filter(c => c.phone.toLowerCase().includes(val));
+      mostrarSugerenciasClientes(coincidencias);
+    }
+
+    function buscarClientePorNombre() {
+      const val = document.getElementById('inputCobroNombre').value.toLowerCase().trim();
+      const contenedor = document.getElementById('listaSugerenciasClientes');
+      
+      if (!val || val.length < 2) {
+        contenedor.style.display = 'none';
+        return;
+      }
+
+      const coincidencias = registeredClients.filter(c => c.name.toLowerCase().includes(val));
+      mostrarSugerenciasClientes(coincidencias);
+    }
+
+    function mostrarSugerenciasClientes(coincidencias) {
+      const contenedor = document.getElementById('listaSugerenciasClientes');
+      if (coincidencias.length === 0) {
+        contenedor.style.display = 'none';
+        return;
+      }
+
+      contenedor.style.display = 'block';
+      contenedor.innerHTML = coincidencias.map(c => `
+        <div onclick="seleccionarClienteSugerido('${c.name.replace(/'/g, "\\'")}', '${c.phone}')" style="padding: 6px; cursor: pointer; border-bottom: 1px solid #eee;" onmouseover="this.style.background='#f0f4f9'" onmouseout="this.style.background='#fff'">
+          <b>${c.name}</b> — 📞 <span style="color:#555;">${c.phone}</span>
+        </div>
+      `).join('');
+    }
+
+    function seleccionarClienteSugerido(nombre, telefono) {
+      document.getElementById('inputCobroNombre').value = nombre;
+      document.getElementById('inputCobroTelefono').value = telefono;
+      document.getElementById('listaSugerenciasClientes').style.display = 'none';
+    }
+
+    // --- COBRO INTELIGENTE CON APERTURA DIRECTA DE LA APP DE ESCRITORIO DE WHATSAPP ---
+    async function ejecutarCobroInteligente(imprimirPapel) {
+      let telefono = document.getElementById('inputCobroTelefono').value.replace(/\s+/g, '').replace(/-/g, '').trim();
+      let nombreCliente = document.getElementById('inputCobroNombre').value.trim();
+
+      if (!nombreCliente) nombreCliente = "Cliente Corinto";
+
+      // 1. FOLIO UNIFICADO EXACTO PARA TODO EL FLUJO
+      const folioUnico = `TK-${Date.now().toString().slice(-6)}`;
+
+      // 2. Procesamos y guardamos la venta pasándole el folio único
+      const ventaObj = procesarYGuardarVentaConFolio(imprimirPapel, folioUnico); 
+      if (!ventaObj) return;
+
+      // 3. Guardar ticket en la colección tickets_digitales usando ese folio exacto como ID del documento
+      if (window.db && window.setDoc && window.doc) {
+        try {
+          await window.setDoc(window.doc(window.db, "tickets_digitales", folioUnico), ventaObj);
+        } catch (e) {
+          console.warn("Error al guardar ticket digital en nube:", e);
+        }
+      }
+
+      // 4. Registrar o actualizar cliente en Firestore si hay teléfono válido
+      if (telefono && telefono.length >= 7) {
+        let telefonoCompleto = telefono;
+        if (!telefonoCompleto.startsWith('503') && telefonoCompleto.length === 8) {
+          telefonoCompleto = '503' + telefonoCompleto;
+        }
+
+        const clienteExistente = registeredClients.find(c => c.phone === telefono);
+        if (!clienteExistente && window.db && window.addDoc && window.collection) {
+          try {
+            const nuevoClienteData = {
+              name: nombreCliente,
+              phone: telefono,
+              points: Math.floor(ventaObj.total),
+              createdAt: new Date().toISOString()
+            };
+            await window.addDoc(window.collection(window.db, "clients"), nuevoClienteData);
+          } catch (e) {
+            console.warn("Error al registrar cliente automático en Firestore:", e);
+          }
+        }
+
+        const puntosGanados = Math.floor(ventaObj.total);
+        // 🔗 ENLACE WEB PARA CORINTO (Asegúrate de crear tu repositorio Eleventa-Corinto o ajustar la ruta)
+        const enlaceTicketWeb = `https://supertonita.github.io/Eleventa-Corinto/ticket.html?folio=${folioUnico}`;
+
+        // MENSAJE FORMAL, SOBRIO Y SIN EMOJIS
+        const mensajeWhatsApp = 
+          `Estimado/a *${nombreCliente}*:\n\n` +
+          `Muchas gracias por su compra en *${configTicket.empresa || 'Super Toñita - Corinto'}*.\n\n` +
+          `*Monto Total:* $${ventaObj.total.toFixed(2)}\n` +
+          `*Puntos Acumulados:* +${puntosGanados} pts\n\n` +
+          `*Consulte su comprobante digital y detalle de compra aquí:*\n` +
+          `${enlaceTicketWeb}\n\n` +
+          `_Estamos para servirle. Esperamos verle pronto._`;
+
+        // 🚀 PROTOCOLO NATIVO PARA INVOCAR LA APP DE ESCRITORIO EN TU PC
+        const urlWhatsAppApp = `whatsapp://send?phone=${telefonoCompleto}&text=${encodeURIComponent(mensajeWhatsApp)}`;
+        
+        window.location.href = urlWhatsAppApp;
+      }
+    }
+
+    function procesarYGuardarVentaConFolio(imprimir, folioUnico) {
       const t = getActiveTicket();
-      let subtotal = t.cart.reduce((a,i) => a + (i.precio * i.cantidad), 0);
+      if (t.cart.length === 0) { alert("El carrito está vacío."); return null; }
+      let subtotal = t.cart.reduce((a,i) => a + ((i.precioAplicado !== undefined ? i.precioAplicado : i.precio) * i.cantidad), 0);
       let desc = t.tipoDescuento === 'porcentaje' ? (subtotal * (t.descuento/100)) : t.descuento;
       let total = Math.max(0, subtotal - desc);
       let costoTotal = t.cart.reduce((a,i) => a + ((i.costo || 0) * i.cantidad), 0);
@@ -1269,16 +1576,21 @@ vuelva pronto</textarea></div>
       total = Math.round(total * 100) / 100;
       paga = Math.round(paga * 100) / 100;
 
-      if (paga < total) return alert("El monto pagado es menor al total.");
+      if (paga < total) { alert("El monto pagado es menor al total."); return null; }
+
+      let itemsConPrecioFinal = t.cart.map(i => ({
+        ...i,
+        precio: i.precioAplicado !== undefined ? i.precioAplicado : i.precio
+      }));
 
       const ventaObj = {
-        folio: `TK-${Date.now().toString().slice(-6)}`,
+        folio: folioUnico,
         fecha: new Date().toISOString(),
         cajero: usuarioActual.nombre,
         caja: cajaActualSeleccionada,
         subtotal, descuento: desc, total, costo: costoTotal, ganancia: total - costoTotal,
         pagaCon: paga, cambio: Math.round((paga - total) * 100) / 100,
-        items: JSON.parse(JSON.stringify(t.cart))
+        items: JSON.parse(JSON.stringify(itemsConPrecioFinal))
       };
 
       historialVentas.unshift(ventaObj);
@@ -1292,8 +1604,8 @@ vuelva pronto</textarea></div>
         localStorage.setItem(turnoKey, JSON.stringify(turnoCaja));
       }
 
-      if (window.db && window.addDoc && window.collection) {
-        window.addDoc(window.collection(window.db, "ventas"), ventaObj);
+      if (window.db && window.setDoc && window.doc) {
+        window.setDoc(window.doc(window.db, "ventas", folioUnico), ventaObj);
       }
 
       if (imprimir) imprimirTicketTermico(ventaObj);
@@ -1302,64 +1614,48 @@ vuelva pronto</textarea></div>
       t.cart = []; t.descuento = 0; t.selectedIndex = -1;
       renderTicketTabs(); renderCart(); focusBarcode();
       actualizarCorteCaja();
+
+      return ventaObj;
     }
 
+    // --- IMPRESIÓN TÉRMICA CON QR JSON Y ENLACE WEB ---
     function imprimirTicketTermico(venta) {
       const ancho = document.getElementById('printerWidthSelect').value;
-      const widthPx = (ancho === '58mm') ? '220px' : '290px';
-      const win = window.open('','','width=400,height=600');
+      const widthPx = (ancho === '58mm') ? '210px' : '270px';
       
       const logoHtml = configTicket.logoBase64 
-        ? `<div class="center"><img src="${configTicket.logoBase64}" style="max-width: 100px; filter: grayscale(100%); margin-bottom: 5px;"></div>` 
-        : `<div class="center" style="font-size:32px; line-height:1;">🛒</div>`;
+        ? `<div style="text-align:center;"><img src="${configTicket.logoBase64}" style="max-width: 150px; filter: grayscale(100%); margin-bottom: 6px;"></div>` 
+        : `<div style="text-align:center; font-size:38px; line-height:1;">🛒</div>`;
 
       const d = new Date(venta.fecha);
       const fechaStr = d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
       const horaStr = d.toLocaleTimeString('es-US', { hour: '2-digit', minute: '2-digit', hour12: true }).toLowerCase();
       
       const totalArticulos = venta.items.reduce((acc, i) => acc + i.cantidad, 0);
+      const puntosGanados = Math.floor(venta.total); 
+      // Enlace global compartido para tienda online y canje de puntos
+      const urlTiendaBase = "https://supertonita.github.io/mi-tienda-online/";
+      
+      const datosCanjeJSON = JSON.stringify({
+        id: venta.folio,
+        total: parseFloat(venta.total.toFixed(2)),
+        pts: puntosGanados
+      });
 
-      win.document.write(`
-        <html><head><style>
-          @page { margin: 0; }
-          body { 
-            font-family: 'Courier New', Courier, monospace; 
-            width: ${widthPx}; 
-            margin: 0 auto; 
-            padding: 8px; 
-            font-size: 13px; 
-            color: #000;
-            background: #fff;
-          }
-          .center { text-align: center; } 
-          .right { text-align: right; }
-          .left { text-align: left; }
-          .bold { font-weight: bold; }
-          .logo-title { font-family: 'Georgia', serif; font-style: italic; font-size: 19px; font-weight: bold; margin-top: 4px; }
-          .header-info { margin-top: 6px; font-size: 12px; line-height: 1.2; }
-          .date-line { text-align: right; margin: 8px 0 6px 0; font-size: 12px; }
-          .meta-info { font-size: 12px; line-height: 1.3; }
-          .separator-double { font-weight: bold; letter-spacing: -1px; overflow: hidden; white-space: nowrap; margin: 4px 0; }
-          
-          table.items-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 2px; }
-          table.items-table td { padding: 2px 0; vertical-align: top; }
-          
-          .totals-block { margin-top: 10px; text-align: right; font-size: 13px; line-height: 1.4; }
-          .totals-block .big-total { font-size: 16px; font-weight: bold; }
-          .footer-msg { text-align: center; margin-top: 15px; font-size: 12px; line-height: 1.3; white-space: pre-line; }
-        </style></head>
-        <body>
+      const container = document.getElementById('printAreaContainer');
+      container.innerHTML = `
+        <div id="ticketPrintDoc" style="font-family: 'Courier New', Courier, monospace; width: ${widthPx}; margin: 0 auto; padding: 5px; font-size: 14px; font-weight: bold; color: #000; background: #fff;">
           ${logoHtml}
-          <div class="center logo-title">${configTicket.empresa || 'Super Toñita - Corinto'}</div>
+          <div style="text-align: center; font-family: 'Georgia', serif; font-style: italic; font-size: 20px; font-weight: bold; margin-top: 4px;">${configTicket.empresa || 'Super Toñita - Corinto'}</div>
           
-          <div class="center header-info">
+          <div style="text-align: center; margin-top: 6px; font-size: 13px; line-height: 1.2;">
             ${configTicket.direccion ? `${configTicket.direccion}<br>` : ''}
-            ${configTicket.telefono ? `${configTicket.telefono}<br>` : ''}
+            ${configTicket.telefono ? `${configTicket.telefono}<br>` : 'Tel: Corinto<br>'}
           </div>
 
-          <div class="date-line">${fechaStr} ${horaStr}</div>
+          <div style="text-align: right; margin: 8px 0 6px 0; font-size: 13px;">${fechaStr} ${horaStr}</div>
 
-          <div class="meta-info">
+          <div style="font-size: 13px; line-height: 1.3;">
             Cajero: ${venta.cajero}<br>
             <div style="display:flex; justify-content:space-between;">
               <span>Folio:</span>
@@ -1367,45 +1663,74 @@ vuelva pronto</textarea></div>
             </div>
           </div>
 
-          <div class="separator-double">================================</div>
+          <div style="font-weight: bold; letter-spacing: -1px; margin: 4px 0;">================================</div>
 
-          <table class="items-table">
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
             <tr>
-              <td style="width: 15%;"><b>Cant.</b></td>
-              <td style="width: 55%;"><b>Descripcion</b></td>
-              <td style="width: 30%; text-align: right;"><b>Importe</b></td>
+              <td style="width: 18%;"><b>Cant.</b></td>
+              <td style="width: 52%;"><b>Desc.</b></td>
+              <td style="width: 30%; text-align: right;"><b>Imp.</b></td>
             </tr>
           </table>
 
-          <div class="separator-double">================================</div>
+          <div style="font-weight: bold; letter-spacing: -1px; margin: 4px 0;">================================</div>
 
-          <table class="items-table">
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
             ${venta.items.map(i => `
               <tr>
-                <td style="width: 15%;">${i.cantidad.toFixed(2)}${i.unidad === 'LB' ? 'lb' : ''}</td>
-                <td style="width: 55%;">${i.descripcion.substring(0, 16)}</td>                 <td style="width: 30\%; text-align: right;">$${(i.cantidad * i.precio).toFixed(2)}</td>
+                <td style="width: 18%; vertical-align: top;">${i.cantidad.toFixed(2)}${i.unidad === 'LB' ? 'lb' : ''}</td>
+                <td style="width: 52%; vertical-align: top;">${i.descripcion.substring(0, 15)}</td>
+                <td style="width: 30%; text-align: right; vertical-align: top;">$${(i.cantidad * i.precio).toFixed(2)}</td>
               </tr>
             `).join('')}
           </table>
 
-          <div style="margin-top: 12px; font-size: 12px; text-align: center;">
+          <div style="margin-top: 10px; font-size: 13px; text-align: center;">
             No. de Articulos: ${totalArticulos.toFixed(2)}
           </div>
 
-          <div class="totals-block">
-            <div class="big-total">Total: $${venta.total.toFixed(2)}</div>
-            <div style="font-weight: bold; font-size: 14px;">Pago Con: $${venta.pagaCon.toFixed(2)}</div>
-            <div style="font-weight: bold; font-size: 14px;">Su Cambio: $${venta.cambio.toFixed(2)}</div>
-            ${venta.descuento > 0 ? `<div style="font-weight: bold; font-size: 13px;">Usted ahorro: $${venta.descuento.toFixed(2)}</div>` : ''}
+          <div style="margin-top: 10px; text-align: right; font-size: 14px; line-height: 1.4;">
+            <div style="font-size: 18px; font-weight: bold;">Total: $${venta.total.toFixed(2)}</div>
+            <div style="font-weight: bold;">Pago Con: $${venta.pagaCon.toFixed(2)}</div>
+            <div style="font-weight: bold;">Su Cambio: $${venta.cambio.toFixed(2)}</div>
+            ${venta.descuento > 0 ? `<div style="font-weight: bold;">Usted ahorro: $${venta.descuento.toFixed(2)}</div>` : ''}
           </div>
 
-          <div class="footer-msg">
+          <div style="text-align: center; margin-top: 10px; font-size: 13px; white-space: pre-line;">
             ${configTicket.mensajePie || 'Gracias por su compra\nvuelva pronto'}
           </div>
-        </body></html>
-      `);
-      win.document.close(); win.focus();
-      setTimeout(() => { win.print(); win.close(); }, 300);
+
+          <div style="margin-top: 14px; text-align: center; border-top: 2px dashed #000; padding-top: 10px;">
+            <div style="margin-bottom: 12px;">
+              <div style="font-size: 12px; font-weight: bold; margin-bottom: 6px;">🌐 VISITA NUESTRA TIENDA ONLINE</div>
+              <div id="qrTiendaInline" style="display:flex; justify-content:center;"></div>
+            </div>
+            <div>
+              <div style="font-size: 12px; font-weight: bold; margin-bottom: 6px;">🎁 CANJEA TUS PUNTOS</div>
+              <div id="qrPuntosInline" style="display:flex; justify-content:center;"></div>
+              <div style="font-size: 13px; font-weight: bold; color: #1d528d; margin-top: 6px;">✨ +${puntosGanados} Puntos (${venta.folio})</div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      new QRCode(document.getElementById("qrTiendaInline"), { 
+        text: urlTiendaBase, 
+        width: 200, 
+        height: 200,
+        correctLevel: QRCode.CorrectLevel.M 
+      });
+
+      new QRCode(document.getElementById("qrPuntosInline"), { 
+        text: datosCanjeJSON, 
+        width: 200, 
+        height: 200,
+        correctLevel: QRCode.CorrectLevel.M 
+      });
+
+      setTimeout(() => {
+        window.print();
+      }, 300);
     }
 
     function filtrarHistorialTickets() {
@@ -1593,7 +1918,6 @@ vuelva pronto</textarea></div>
       });
     }
 
-    // EXPORTACIÓN A EXCEL DETALLADA CON TOTALES Y ENCABEZADOS EN NEGRITA
     function exportarReporteExcelDetallado() {
       let ventasFiltradas = obtenerVentasFiltradasReporte();
       if (ventasFiltradas.length === 0) return alert("No hay ventas registradas en el rango seleccionado.");
@@ -1690,7 +2014,6 @@ vuelva pronto</textarea></div>
         ]);
       });
 
-      // Fila de TOTALES al pie[cite: 3]
       let porcUtilGlobal = granTotalVentaNeta > 0 ? (granTotalUtilidad / granTotalVentaNeta) : 0;
       dataSheet.push([
         "", 
