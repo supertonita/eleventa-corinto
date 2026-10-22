@@ -1544,7 +1544,7 @@ vuelva pronto</textarea></div>
         }
 
         const puntosGanados = Math.floor(ventaObj.total);
-        // 🔗 ENLACE WEB PARA CORINTO (Asegúrate de crear tu repositorio Eleventa-Corinto o ajustar la ruta)
+        // 🔗 ENLACE WEB PARA CORINTO
         const enlaceTicketWeb = `https://supertonita.github.io/Eleventa-Corinto/ticket.html?folio=${folioUnico}`;
 
         // MENSAJE FORMAL, SOBRIO Y SIN EMOJIS
@@ -1633,7 +1633,6 @@ vuelva pronto</textarea></div>
       
       const totalArticulos = venta.items.reduce((acc, i) => acc + i.cantidad, 0);
       const puntosGanados = Math.floor(venta.total); 
-      // Enlace global compartido para tienda online y canje de puntos
       const urlTiendaBase = "https://supertonita.github.io/mi-tienda-online/";
       
       const datosCanjeJSON = JSON.stringify({
@@ -2045,7 +2044,7 @@ vuelva pronto</textarea></div>
       XLSX.writeFile(wb, `Reporte_Utilidad_Corinto_${new Date().toISOString().slice(0,10)}.xlsx`);
     }
 
-    // --- FUNCIÓN INTELIGENTE DE IMPORTACIÓN MASIVA (ACTUALIZA SI EXISTE / CREA SI ES NUEVO) ---
+    // --- FUNCIÓN DE IMPORTACIÓN ROBUSTA (SOPORTA CÓDIGOS DE TEXTO/NOMBRE COMO ABRIDOR, SAL, ETC.) ---
     function importarExcelProductos(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -2069,6 +2068,7 @@ vuelva pronto</textarea></div>
           for (let i = 0; i < rows.length; i++) {
             const r = rows[i];
 
+            // Lee con flexibilidad cualquier variante de nombre en las columnas
             const codigoRaw = String(
               r.Codigo || r.CÓDIGO || r.codigo || r.CODIGO || r.Barcode || r.BARCODE || r.BARCODE_ID || ""
             ).trim();
@@ -2086,7 +2086,8 @@ vuelva pronto</textarea></div>
             
             const costo = parseFloat(String(r.Costo || r.COSTO || r.costo || 0).replace('$', '').replace(',', '')) || 0;
             const precio = parseFloat(String(r.Precio || r.PRECIO || r.PrecioVenta || r.VENTA || r.precio || 0).replace('$', '').replace(',', '')) || 0;
-            const departamento = String(r.Departamento || r.DEPARTAMENTO || r.depto || 'Abarrotes').trim();
+            // Si el departamento viene vacío en el Excel, le asigna "Abarrotes" por defecto
+            const departamento = String(r.Departamento || r.DEPARTAMENTO || r.depto || 'Abarrotes').trim() || 'Abarrotes';
             const unidad = String(r.Unidad || r.UNIDAD || r.Medida || 'LB').trim();
             const existencia = parseFloat(r.Existencia || r.EXISTENCIA || r.Stock || 10) || 10;
 
@@ -2121,7 +2122,7 @@ vuelva pronto</textarea></div>
 
           localStorage.setItem('pos_productos_cache_corinto', JSON.stringify(productos));
           
-          alert(`¡Proceso de importación completado!\n\n✅ Productos actualizados / agregados: ${importadosCount}\n⚠️ Filas omitidas (sin código/nombre): ${omitidosCount}`);
+          alert(`¡Proceso de importación completado!\n\n✅ Productos cargados / actualizados: ${importadosCount}\n⚠️ Filas omitidas: ${omitidosCount}`);
           renderTablaCatalogo();
 
         } catch (err) {
