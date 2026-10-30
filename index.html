@@ -664,6 +664,14 @@ vuelva pronto</textarea></div>
   </div>
 
   <script>
+    // --- RECUPERAR O INICIALIZAR TICKETS DESDE LOCALSTORAGE ---
+    let ticketsGuardados = JSON.parse(localStorage.getItem('pos_tickets_pendientes_corinto') || 'null');
+    
+    let tickets = (ticketsGuardados && ticketsGuardados.length > 0) ? ticketsGuardados : [
+      { id: 1, nombre: "Ticket 1", cart: [], descuento: 0, tipoDescuento: 'porcentaje', selectedIndex: -1 }
+    ];
+    let activeTicketId = tickets[0].id;
+
     let usuarios = [
       { id: "francisco_reyes", nombre: "FRANCISCO REYES", pass: "1234", rol: "admin", cajaAsignada: "Caja 1", permisos: {ventas:true, productos:true, historial:true, corte:true, reportes:true, usuarios:true, config:true} }
     ];
@@ -672,8 +680,6 @@ vuelva pronto</textarea></div>
     let productos = JSON.parse(localStorage.getItem('pos_productos_cache_corinto') || "[]");
     let promociones = JSON.parse(localStorage.getItem('pos_promos_corinto') || "[]");
     let registeredClients = JSON.parse(localStorage.getItem('pos_clientes_fidelidad_cache_corinto') || "[]");
-    let tickets = [{ id: 1, nombre: "Ticket 1", cart: [], descuento: 0, tipoDescuento: 'porcentaje', selectedIndex: -1 }];
-    let activeTicketId = 1;
     let historialVentas = JSON.parse(localStorage.getItem('pos_historial_ventas_corinto') || "[]");
     let codigoEdicionAnterior = null;
     let itemEditandoPrecioIndex = null;
@@ -693,6 +699,11 @@ vuelva pronto</textarea></div>
     let ticketSeleccionadoPreview = null;
     let chartSalesBarInstance = null;
     let chartDeptosInstance = null;
+
+    // --- FUNCIÓN PARA GUARDAR EL ESTADO DE LOS TICKETS EN MEMORIA LOCAL ---
+    function guardarTicketsEnMemoria() {
+      localStorage.setItem('pos_tickets_pendientes_corinto', JSON.stringify(tickets));
+    }
 
     function normalizarCodigo(cadena) {
       if (!cadena) return "";
@@ -880,6 +891,8 @@ vuelva pronto</textarea></div>
       renderTablaUsuarios();
       renderTablaPromos();
       cargarConfigTicketUI();
+      renderTicketTabs();
+      renderCart();
 
       const hoyStr = new Date().toISOString().slice(0, 10);
       document.getElementById('repFechaDesde').value = hoyStr;
@@ -1085,6 +1098,7 @@ vuelva pronto</textarea></div>
       tickets.push({ id: newId, nombre: nombreTicket, cart: [], descuento: 0, tipoDescuento: 'porcentaje', selectedIndex: -1 });
       activeTicketId = newId;
       renderTicketTabs(); renderCart(); 
+      guardarTicketsEnMemoria();
       cerrarModalNuevoTicket();
     }
 
@@ -1094,6 +1108,7 @@ vuelva pronto</textarea></div>
       tickets = tickets.filter(t => t.id !== id);
       activeTicketId = tickets[tickets.length - 1].id;
       renderTicketTabs(); renderCart(); focusBarcode();
+      guardarTicketsEnMemoria();
     }
 
     function agregarProductoSubmit(e) { if (e) e.preventDefault(); agregarProductoEnter(); }
@@ -1138,6 +1153,7 @@ vuelva pronto</textarea></div>
           t.selectedIndex = t.cart.length - 1; 
         }
         renderCart(); renderTicketTabs();
+        guardarTicketsEnMemoria();
       } else { alert("Producto no encontrado."); }
       inputEl.value = '';
       focusBarcode();
@@ -1214,23 +1230,28 @@ vuelva pronto</textarea></div>
       t.cart[itemEditandoPrecioIndex].precioManual = nuevoPrecio;
       t.cart[itemEditandoPrecioIndex].precioAplicado = nuevoPrecio;
       renderCart();
+      guardarTicketsEnMemoria();
       cerrarModalEditarPrecio();
     }
 
     function seleccionarFilaCarrito(idx) { getActiveTicket().selectedIndex = idx; renderCart(); }
+    
     function modCantidad(idx, delta) {
       const t = getActiveTicket();
       if (idx < 0 || idx >= t.cart.length) return;
       t.cart[idx].cantidad += delta;
       if (t.cart[idx].cantidad <= 0) { t.cart.splice(idx, 1); t.selectedIndex = Math.max(0, idx - 1); }
       renderCart();
+      guardarTicketsEnMemoria();
     }
+    
     function eliminarItem(idx) {
       const t = getActiveTicket();
       if (idx < 0 || idx >= t.cart.length) return;
       t.cart.splice(idx, 1);
       t.selectedIndex = Math.max(0, idx - 1);
       renderCart();
+      guardarTicketsEnMemoria();
     }
 
     document.addEventListener('keydown', (e) => {
@@ -1687,6 +1708,7 @@ vuelva pronto</textarea></div>
       cerrarModalCobro();
       t.cart = []; t.selectedIndex = -1;
       renderTicketTabs(); renderCart(); focusBarcode();
+      guardarTicketsEnMemoria();
       actualizarCorteCaja();
 
       return ventaObj;
@@ -2259,7 +2281,7 @@ vuelva pronto</textarea></div>
 
         } catch (err) {
           console.error("Error al procesar el Excel:", err);
-          alert("Ocurrió un error al leer el archivo Excel. Asegúrate de que sea un archivo .xlsx o .csv válido.");
+          alert("Ocurrió un error al leer el archivo Excel. Asegúrate de que seja un archivo .xlsx o .csv válido.");
         }
       };
 
