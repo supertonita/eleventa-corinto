@@ -63,11 +63,11 @@
     .field-group input, .field-group select, .field-group textarea { width: 100%; padding: 8px; border: 1px solid #7f9db9; outline: none; border-radius: 3px; font-size: 13px; }
     .btn-main { width: 100%; padding: 10px; background: linear-gradient(to bottom, #4c77a6, #1d528d); color: #fff; border: none; font-weight: bold; font-size: 14px; border-radius: 4px; cursor: pointer; margin-top: 5px; }
 
-    .top-menu { background: linear-gradient(to bottom, #f0f3f7, #cbd3df); border-bottom: 1px solid var(--border-color); padding: 4px 8px; display: flex; justify-content: space-between; align-items: center; }
+    .top-menu { background: linear-gradient(to bottom, #f0f3f7, #cbd3df); border-bottom: 1px solid var(--border-color); padding: 10px 8px; display: flex; justify-content: space-between; align-items: center; }
     .brand-title { font-weight: bold; font-size: 16px; color: #333; display: flex; align-items: center; gap: 6px; }
     .brand-title span { color: var(--accent-blue); font-style: italic; }
     .nav-buttons { display: flex; gap: 2px; }
-    .nav-btn { background: linear-gradient(to bottom, #ffffff, #e2e7ee); border: 1px solid #99a5b4; border-radius: 3px; padding: 4px 10px; cursor: pointer; font-weight: 600; color: #222; display: flex; align-items: center; gap: 4px; }
+    .nav-btn { background: linear-gradient(to bottom, #ffffff, #e2e7ee); border: 1px solid #99a5b4; border-radius: 15px; padding: 10px 5px; cursor: pointer; font-weight: 600; color: #222; display: flex; align-items: center; gap: 4px; }
     .nav-btn.active { background: linear-gradient(to bottom, #dbe4f0, #b0c2d8); border-color: var(--accent-blue); }
 
     .net-status { padding: 2px 8px; border-radius: 10px; font-weight: bold; font-size: 11px; color: #fff; }
@@ -135,7 +135,7 @@
     <div class="card-dialog">
       <h2>POS - Corinto</h2>
       <div class="field-group">
-        <label>Usuario / Cajero:</label>
+        <label>Usuario :</label>
         <select id="loginUser" onchange="cambioSelectLoginUser()"></select>
       </div>
       <div class="field-group">
@@ -168,16 +168,16 @@
 
   <!-- BARRA SUPERIOR DE NAVEGACIÓN -->
   <div class="top-menu">
-    <div class="brand-title">eleventa <span>Super Toñita - Corinto</span></div>
+    <div class="brand-title">Super Toñita<span>Corinto</span></div>
     <div class="nav-buttons">
-      <button class="nav-btn active" id="navF1" onclick="switchNav('posView')">🛒 F1 Ventas</button>
-      <button class="nav-btn" id="navF3" onclick="switchNav('productsView')">📦 F3 Productos</button>
-      <button class="nav-btn" id="navPromos" onclick="switchNav('promosView')">🏷️ Promos</button>
-      <button class="nav-btn" id="navHistorial" onclick="switchNav('historialView')">📜 Historial Tickets</button>
-      <button class="nav-btn" id="navCorte" onclick="switchNav('corteView')">📋 Corte</button>
-      <button class="nav-btn" id="navReportes" onclick="switchNav('reportesView')">📊 Reportes</button>
-      <button class="nav-btn" id="navUsuarios" onclick="switchNav('usuariosView')">👥 Usuarios</button>
-      <button class="nav-btn" id="navConfig" onclick="switchNav('configView')">⚙️ Configuración</button>
+      <button class="nav-btn active" id="navF1" onclick="switchNav('posView')"> F1 Ventas</button>
+      <button class="nav-btn" id="navF3" onclick="switchNav('productsView')"> F3 Productos</button>
+      <button class="nav-btn" id="navPromos" onclick="switchNav('promosView')">Promos</button>
+      <button class="nav-btn" id="navHistorial" onclick="switchNav('historialView')"> Historial Tickets</button>
+      <button class="nav-btn" id="navCorte" onclick="switchNav('corteView')"> Corte</button>
+      <button class="nav-btn" id="navReportes" onclick="switchNav('reportesView')"> Reportes</button>
+      <button class="nav-btn" id="navUsuarios" onclick="switchNav('usuariosView')"> Usuarios</button>
+      <button class="nav-btn" id="navConfig" onclick="switchNav('configView')"> Configuración</button>
     </div>
     <div style="font-size: 11px; color: #444; display: flex; align-items: center; gap: 10px;">
       <span id="netStatusBadge" class="net-status net-online">CORINTO</span>
@@ -237,7 +237,7 @@
             <div style="font-size: 11px; color: #555;">Subtotal: <span id="subtotalVal">$0.00</span></div>
             <div style="font-size: 26px; font-weight: bold; color: #1d528d; line-height: 1;" id="totalVal">$0.00</div>
           </div>
-          <button class="btn-cobrar" onclick="abrirModalCobro()">💳 F12 - Cobrar</button>
+          <button class="btn-cobrar" onclick="abrirModalCobro()"> F12 - Cobrar</button>
         </div>
       </footer>
     </section>
@@ -416,7 +416,7 @@
         </div>
 
         <div style="background: #f8fafc; border: 1px solid #d0d7e1; padding: 15px; border-radius: 4px;">
-          <h3 style="color: var(--accent-blue); margin-bottom: 10px;">🛍️ Ventas del Turno Actual</h3>
+          <h3 style="color: var(--accent-blue); margin-bottom: 10px;"> Ventas del Turno Actual</h3>
           <div style="display:flex; justify-content:space-between; padding:4px 0;"><span>Ventas Totales (Efec + Tarj):</span> <span id="corteVentasTotales">$0.00</span></div>
           <div id="corteGananciaContainer" style="display:flex; justify-content:space-between; padding:4px 0; font-weight:bold; color:#28a745;"><span>Ganancia Estimada:</span> <span id="corteGanancia">$0.00</span></div>
           <button class="btn-main" style="background:#d9534f; margin-top:15px;" onclick="cerrarTurno()">🔒 Cerrar Turno y Entregar Caja</button>
@@ -443,7 +443,7 @@
           <label><b>Hasta:</b> <input type="date" id="repFechaHasta" onchange="actualizarReportes()"></label>
         </div>
 
-        <button class="op-btn" style="background: #28a745; color: #fff;" onclick="exportarReporteExcelDetallado()">📥 Exportar Reporte a Excel</button>
+        <button class="op-btn" style="background: #28a745; color: #fff;" onclick="exportarReporteExcelDetallado()"> Exportar Reporte a Excel</button>
       </div>
 
       <div style="padding: 15px;">
@@ -507,13 +507,13 @@
 
             <div class="field-group" style="background: #fff; padding: 8px; border: 1px solid #ccc; border-radius: 3px;">
               <label style="margin-bottom: 6px; color: var(--accent-blue);">Permisos de Módulos:</label>
-              <label style="font-weight:normal;"><input type="checkbox" id="permVentas" checked> 🛒 Módulo de Ventas</label>
-              <label style="font-weight:normal;"><input type="checkbox" id="permProductos"> 📦 Catálogo de Productos</label>
-              <label style="font-weight:normal;"><input type="checkbox" id="permHistorial"> 📜 Historial de Tickets</label>
-              <label style="font-weight:normal;"><input type="checkbox" id="permCorte"> 📋 Corte de Caja</label>
-              <label style="font-weight:normal;"><input type="checkbox" id="permReportes"> 📊 Reportes y Gráficas</label>
-              <label style="font-weight:normal;"><input type="checkbox" id="permUsuarios"> 👥 Gestión de Usuarios</label>
-              <label style="font-weight:normal;"><input type="checkbox" id="permConfig"> ⚙️ Configuración</label>
+              <label style="font-weight:normal;"><input type="checkbox" id="permVentas" checked>  Módulo de Ventas</label>
+              <label style="font-weight:normal;"><input type="checkbox" id="permProductos">  Catálogo de Productos</label>
+              <label style="font-weight:normal;"><input type="checkbox" id="permHistorial">  Historial de Tickets</label>
+              <label style="font-weight:normal;"><input type="checkbox" id="permCorte">  Corte de Caja</label>
+              <label style="font-weight:normal;"><input type="checkbox" id="permReportes">  Reportes y Gráficas</label>
+              <label style="font-weight:normal;"><input type="checkbox" id="permUsuarios">  Gestión de Usuarios</label>
+              <label style="font-weight:normal;"><input type="checkbox" id="permConfig">  Configuración</label>
             </div>
 
             <button type="submit" class="btn-main" style="margin-top: 10px;">✔ Guardar Usuario en la Nube</button>
@@ -628,8 +628,8 @@ vuelva pronto</textarea></div>
         <div class="field-group" style="margin-bottom: 10px;">
           <label style="font-size: 11px; font-weight: bold; color: var(--accent-blue);">FORMA DE PAGO:</label>
           <select id="selectMetodoPago" onchange="cambioMetodoPago()" style="font-weight: bold; font-size: 13px;">
-            <option value="efectivo">💵 Efectivo</option>
-            <option value="tarjeta">💳 Tarjeta </option>
+            <option value="efectivo"> Efectivo</option>
+            <option value="tarjeta"> Tarjeta </option>
           </select>
         </div>
 
