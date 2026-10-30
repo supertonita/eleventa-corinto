@@ -56,14 +56,14 @@
     body { background-color: #f4f6f9; color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; user-select: none; }
 
     .overlay-screen { position: fixed; inset: 0; background: #f2f3f5; display: flex; align-items: center; justify-content: center; z-index: 1000; }
-    .card-dialog { background: #fff; width: 420px; padding: 25px; border-radius: 6px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); border: 2px solid var(--accent-blue); }
+    .card-dialog { background: #fff; width: 420px; padding: 25px; border-radius: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); border: 2px solid var(--accent-blue); }
     .card-dialog h2 { color: var(--accent-blue); text-align: center; margin-bottom: 15px; font-size: 18px; }
-    .field-group { margin-bottom: 12px; }
+    .field-group { margin-bottom: 20px; }
     .field-group label { display: block; font-weight: bold; margin-bottom: 4px; color: #333; }
-    .field-group input, .field-group select, .field-group textarea { width: 100%; padding: 8px; border: 1px solid #7f9db9; outline: none; border-radius: 3px; font-size: 13px; }
-    .btn-main { width: 100%; padding: 10px; background: linear-gradient(to bottom, #4c77a6, #1d528d); color: #fff; border: none; font-weight: bold; font-size: 14px; border-radius: 4px; cursor: pointer; margin-top: 5px; }
+    .field-group input, .field-group select, .field-group textarea { width: 100%; padding: 8px; border: 1px solid #7f9db9; outline: none; border-radius: 15px; font-size: 13px; }
+    .btn-main { width: 100%; padding: 10px; background: linear-gradient(to bottom, #4c77a6, #1d528d); color: #fff; border: none; font-weight: bold; font-size: 14px; border-radius: 10px; cursor: pointer; margin-top: 5px; }
 
-    .top-menu { background: linear-gradient(to bottom, #f0f3f7, #cbd3df); border-bottom: 1px solid var(--border-color); padding: 10px 8px; display: flex; justify-content: space-between; align-items: center; }
+    .top-menu { background: linear-gradient(to bottom, #f0f3f7, #cbd3df); border-bottom: 13px solid var(--border-color); padding: 10px 8px; display: flex; justify-content: space-between; align-items: center; }
     .brand-title { font-weight: bold; font-size: 16px; color: #333; display: flex; align-items: center; gap: 6px; }
     .brand-title span { color: var(--accent-blue); font-style: italic; }
     .nav-buttons { display: flex; gap: 2px; }
@@ -73,11 +73,11 @@
     .net-status { padding: 2px 8px; border-radius: 10px; font-weight: bold; font-size: 11px; color: #fff; }
     .net-online { background-color: #28a745; }
 
-    .ticket-tabs-bar { background: #d0d7e1; border-bottom: 1px solid var(--border-color); padding: 3px 8px 0 8px; display: flex; gap: 4px; align-items: center; overflow-x: auto; }
-    .tab-ticket { background: #b8c4d3; border: 1px solid #8e9bb0; border-bottom: none; border-radius: 4px 4px 0 0; padding: 4px 10px; cursor: pointer; font-weight: bold; color: #333; display: flex; align-items: center; gap: 6px; }
+    .ticket-tabs-bar { background: #d0d7e1; border-radius: 10px solid var(--border-color) ; padding: 3px 8px 0 8px; display: flex; gap: 4px; align-items: center; overflow-x: auto; }
+    .tab-ticket { background: #b8c4d3; border-radius: 10px solid #8e9bb0; border-bottom: none; border-radius: 10px 10px 5 5; padding: 4px 10px; cursor: pointer; font-weight: bold; color: #333; display: flex; align-items: center; gap: 6px; }
     .tab-ticket.active { background: #fff; color: var(--accent-blue); border-bottom: 1px solid #fff; margin-bottom: -1px; }
     .btn-close-tab { background: transparent; border: none; font-weight: bold; color: #a00; cursor: pointer; margin-left: 4px; font-size: 12px; }
-    .btn-new-ticket { background: #28a745; color: #fff; border: none; border-radius: 3px; padding: 3px 8px; font-weight: bold; cursor: pointer; font-size: 11px; }
+    .btn-new-ticket { background: #28a745; color: #fff; border: none; border-radius: 15px; padding: 3px 8px; font-weight: bold; cursor: pointer; font-size: 11px; }
 
     main { flex: 1; display: flex; flex-direction: column; background: #fff; overflow: hidden; }
     .view-section { display: none; flex: 1; flex-direction: column; height: 100%; overflow-y: auto; }
@@ -90,8 +90,8 @@
     .sub-menu-bar { background: #e5eaf1; border-bottom: 1px solid var(--border-color); padding: 4px 12px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .op-btn { background: linear-gradient(to bottom, #ffffff, #e1e6ed); border: 1px solid #9aa7b6; padding: 3px 8px; border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: bold; }
 
-    .barcode-section { background: #eef2f7; padding: 6px 12px; border-bottom: 1px solid #d0d7e1; }
-    .barcode-input-container { display: flex; align-items: center; background: #fff; border: 1px solid #7f9db9; padding: 2px 6px; width: 100%; }
+    .barcode-section { background: #eef2f7; padding: 6px 12px; border-bottom: 2px solid #d0d7e1; }
+    .barcode-input-container { display: flex; align-items: center; background: #fff; border: 2px solid #7f9db9;border-radius: 15px; padding: 2px 6px; width: 100%; }
     .barcode-input-container input { width: 100%; border: none; outline: none; font-size: 14px; padding: 4px; }
     .table-container { flex: 1; overflow-y: auto; background: #fff; }
     table { width: 100%; border-collapse: collapse; text-align: left; }
@@ -99,14 +99,14 @@
     td { padding: 6px; border-bottom: 1px solid #e1e6ed; border-right: 1px solid #f0f3f7; }
     tr.selected-row { background-color: #dbe8f6 !important; font-weight: bold; border-left: 4px solid var(--accent-blue); }
 
-    footer { background: #e5eaf1; border-top: 1px solid var(--border-color); padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; }
-    .btn-cobrar { background: linear-gradient(to bottom, #ffffff, #d9e3f0); border: 2px solid #1d528d; border-radius: 4px; padding: 8px 16px; font-size: 14px; font-weight: bold; color: #1d528d; cursor: pointer; }
+    footer { background: #e5eaf1; border-top: 3px solid var(--border-color); padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; }
+    .btn-cobrar { background: linear-gradient(to bottom, #ffffff, #d9e3f0); border: 2px solid #1d528d; border-radius: 10px; padding: 8px 16px; font-size: 20px; font-weight: bold; color: #1d528d; cursor: pointer; }
 
     .form-container-eleventa { padding: 15px 25px; flex: 1; overflow-y: auto; background: #f8fafc; }
     .section-subtitle { font-size: 14px; font-weight: bold; color: var(--yellow-bar); margin-bottom: 10px; border-bottom: 1px solid #ebd492; padding-bottom: 3px; }
     .grid-form { display: grid; grid-template-columns: 140px 1fr; row-gap: 8px; align-items: center; max-width: 650px; }
     .grid-form label { text-align: right; padding-right: 10px; font-weight: 500; color: #333; }
-    .grid-form input[type="text"], .grid-form input[type="number"], .grid-form select { padding: 4px 6px; border: 1px solid #7f9db9; outline: none; border-radius: 2px; width: 100%; }
+    .grid-form input[type="text"], .grid-form input[type="number"], .grid-form select { padding: 4px 6px; border: 1px solid #7f9db9; outline: none; border-radius: 20px; width: 100%; }
 
     .reportes-top-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 15px; }
     .top-box { background: #f8fafc; border: 1px solid #d0d7e1; padding: 10px; border-radius: 4px; max-height: 250px; overflow-y: auto; }
@@ -114,7 +114,7 @@
 
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 100; }
     .modal-overlay.active { display: flex; }
-    .cobro-dialog { background: #e8eef5; border: 1px solid #7f9db9; width: 680px; display: flex; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-radius: 4px; overflow: hidden; }
+    .cobro-dialog { background: #e8eef5; border: 1px solid #7f9db9; width: 680px; display: flex; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border-radius: 15px; overflow: hidden; }
     .cobro-main { flex: 2; padding: 20px; background: #f4f7fa; border-right: 1px solid #c0cbd9; }
     .cobro-sidebar { flex: 1; padding: 15px; background: #e8eef5; display: flex; flex-direction: column; gap: 8px; }
 
@@ -168,7 +168,7 @@
 
   <!-- BARRA SUPERIOR DE NAVEGACIÓN -->
   <div class="top-menu">
-    <div class="brand-title">Super Toñita<span>Corinto</span></div>
+    <div class="brand-title">Super Toñita Corinto<span></span></div>
     <div class="nav-buttons">
       <button class="nav-btn active" id="navF1" onclick="switchNav('posView')"> F1 Ventas</button>
       <button class="nav-btn" id="navF3" onclick="switchNav('productsView')"> F3 Productos</button>
@@ -460,15 +460,15 @@
 
         <div class="reportes-top-grid">
           <div class="top-box">
-            <h4>🏆 Top Productos Más Vendidos</h4>
+            <h4> Top Productos Más Vendidos</h4>
             <table><thead><tr><th>Producto</th><th>Cant.</th><th>Total ($)</th></tr></thead><tbody id="topVendidosBody"></tbody></table>
           </div>
           <div class="top-box">
-            <h4>💎 Top Productos Mayor Ganancia</h4>
+            <h4> Top Productos Mayor Ganancia</h4>
             <table><thead><tr><th>Producto</th><th>Ganancia ($)</th></tr></thead><tbody id="topGananciaBody"></tbody></table>
           </div>
           <div class="top-box">
-            <h4>📁 Ventas por Departamento</h4>
+            <h4> Ventas por Departamento</h4>
             <table><thead><tr><th>Depto</th><th>Venta</th><th>Ganancia</th></tr></thead><tbody id="topDeptosBody"></tbody></table>
           </div>
         </div>
