@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>POS Web - Super Toñita (Los Fuentes)</title>
+  <title>POS Web - Super Toñita (Corinto)</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -12,16 +12,16 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getFirestore, collection, addDoc, doc, setDoc, deleteDoc, getDoc, onSnapshot, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // 🔑 Credenciales exclusivas de Firebase para Sucursal Los Fuentes
+    // 🔑 Credenciales exclusivas de Firebase para Sucursal Corinto
     const firebaseConfig = {
-      apiKey: "AIzaSyBTObUeDhW8Pvx7OoRnr5BkM7Z0GXB7GrY",
-      authDomain: "pos-los-fuentes.firebaseapp.com",
-      databaseURL: "https://pos-los-fuentes-default-rtdb.firebaseio.com",
-      projectId: "pos-los-fuentes",
-      storageBucket: "pos-los-fuentes.appspot.com",
+      apiKey: "AIzaSyDgE-InV3Ur3oJGAbB1d7PUkpWeHkrdMTc",
+      authDomain: "ounto-de-venta-corinto.firebaseapp.com",
+      databaseURL: "https://ounto-de-venta-corinto-default-rtdb.firebaseio.com",
+      projectId: "ounto-de-venta-corinto",
+      storageBucket: "ounto-de-venta-corinto.firebasestorage.app",
       messagingSenderId: "99785865966",
-      appId: "1:99785865966:web:losfuentes01",
-      measurementId: "G-LOSFUENTES01"
+      appId: "1:99785865966:web:a897c423106e8c01ca91ff",
+      measurementId: "G-6BZYZ81R48"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -73,8 +73,8 @@
     .net-status { padding: 2px 8px; border-radius: 10px; font-weight: bold; font-size: 11px; color: #fff; }
     .net-online { background-color: #28a745; }
 
-    .ticket-tabs-bar { background: #d0d7e1; border-radius: 10px solid var(--border-color); padding: 3px 8px 0 8px; display: flex; gap: 4px; align-items: center; overflow-x: auto; }
-    .tab-ticket { background: #b8c4d3; border-radius: 10px solid #8e9bb0; border-bottom: none; border-radius: 10px 10px 5px 5px; padding: 4px 10px; cursor: pointer; font-weight: bold; color: #333; display: flex; align-items: center; gap: 6px; }
+    .ticket-tabs-bar { background: #d0d7e1; border-radius: 10px solid var(--border-color) ; padding: 3px 8px 0 8px; display: flex; gap: 4px; align-items: center; overflow-x: auto; }
+    .tab-ticket { background: #b8c4d3; border-radius: 10px solid #8e9bb0; border-bottom: none; border-radius: 10px 10px 5 5; padding: 4px 10px; cursor: pointer; font-weight: bold; color: #333; display: flex; align-items: center; gap: 6px; }
     .tab-ticket.active { background: #fff; color: var(--accent-blue); border-bottom: 1px solid #fff; margin-bottom: -1px; }
     .btn-close-tab { background: transparent; border: none; font-weight: bold; color: #a00; cursor: pointer; margin-left: 4px; font-size: 12px; }
     .btn-new-ticket { background: #28a745; color: #fff; border: none; border-radius: 15px; padding: 3px 8px; font-weight: bold; cursor: pointer; font-size: 11px; }
@@ -91,7 +91,7 @@
     .op-btn { background: linear-gradient(to bottom, #ffffff, #e1e6ed); border: 1px solid #9aa7b6; padding: 3px 8px; border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: bold; }
 
     .barcode-section { background: #eef2f7; padding: 6px 12px; border-bottom: 2px solid #d0d7e1; }
-    .barcode-input-container { display: flex; align-items: center; background: #fff; border: 2px solid #7f9db9; border-radius: 15px; padding: 2px 6px; width: 100%; }
+    .barcode-input-container { display: flex; align-items: center; background: #fff; border: 2px solid #7f9db9;border-radius: 15px; padding: 2px 6px; width: 100%; }
     .barcode-input-container input { width: 100%; border: none; outline: none; font-size: 14px; padding: 4px; }
     .table-container { flex: 1; overflow-y: auto; background: #fff; }
     table { width: 100%; border-collapse: collapse; text-align: left; }
@@ -133,9 +133,9 @@
   <!-- PANTALLA 1: LOGIN -->
   <div id="loginScreen" class="overlay-screen">
     <div class="card-dialog">
-      <h2>POS - Los Fuentes</h2>
+      <h2>POS - Corinto</h2>
       <div class="field-group">
-        <label>Usuario:</label>
+        <label>Usuario :</label>
         <select id="loginUser" onchange="cambioSelectLoginUser()"></select>
       </div>
       <div class="field-group">
@@ -168,7 +168,7 @@
 
   <!-- BARRA SUPERIOR DE NAVEGACIÓN -->
   <div class="top-menu">
-    <div class="brand-title">Super Toñita Los Fuentes<span></span></div>
+    <div class="brand-title">Super Toñita Corinto<span></span></div>
     <div class="nav-buttons">
       <button class="nav-btn active" id="navF1" onclick="switchNav('posView')"> F1 Ventas</button>
       <button class="nav-btn" id="navF3" onclick="switchNav('productsView')"> F3 Productos</button>
@@ -180,7 +180,7 @@
       <button class="nav-btn" id="navConfig" onclick="switchNav('configView')"> Configuración</button>
     </div>
     <div style="font-size: 11px; color: #444; display: flex; align-items: center; gap: 10px;">
-      <span id="netStatusBadge" class="net-status net-online">LOS FUENTES</span>
+      <span id="netStatusBadge" class="net-status net-online">CORINTO</span>
       <div>Atiende: <b id="lblCajeroName">FRANCISCO REYES</b> (<span id="lblCajaBadge">Caja 1</span>)</div>
       <button onclick="cerrarSesion()" style="margin-left: 4px; cursor: pointer;">[Salir]</button>
     </div>
@@ -217,7 +217,7 @@
             <tr>
               <th style="width: 15%;">Código</th>
               <th style="width: 35%;">Descripción</th>
-              <th style="width: 12%;">Precio</th>
+              <th style="width: 12%;">Precio </th>
               <th style="width: 8%;">Cant.</th>
               <th style="width: 12%;">Importe</th>
               <th style="width: 18%;">Ajuste</th>
@@ -244,7 +244,7 @@
 
     <!-- VISTA 2: PRODUCTOS -->
     <section id="productsView" class="view-section">
-      <div class="title-bar-yellow">PRODUCTOS - LOS FUENTES</div>
+      <div class="title-bar-yellow">PRODUCTOS - CORINTO</div>
 
       <div class="sub-menu-bar">
         <button class="op-btn" onclick="mostrarSubVistaProd('nuevo')">➕ Nuevo Producto</button>
@@ -262,7 +262,7 @@
           <form id="formNuevoProd" onsubmit="guardarProducto(event)">
             <div class="grid-form">
               <label>Código(s) de Barras:</label>
-              <input type="text" id="pCodigo" required placeholder="Separa varios códigos por comas">
+              <input type="text" id="pCodigo" required placeholder="Separa varios códigos por comas ">
 
               <label>Descripción:</label>
               <input type="text" id="pDescripcion" required>
@@ -338,7 +338,7 @@
 
     <!-- VISTA NUEVA: PROMOCIONES Y OFERTAS -->
     <section id="promosView" class="view-section">
-      <div class="title-bar-yellow">GESTIÓN DE PROMOCIONES Y OFERTAS - LOS FUENTES</div>
+      <div class="title-bar-yellow">GESTIÓN DE PROMOCIONES Y OFERTAS - CORINTO</div>
       <div style="padding: 20px; display: grid; grid-template-columns: 350px 1fr; gap: 20px;">
         <div style="background: #f8fafc; border: 1px solid #d0d7e1; padding: 15px; border-radius: 4px;">
           <h3 style="color: var(--accent-blue); margin-bottom: 12px;">🏷️ Registrar Promoción</h3>
@@ -537,9 +537,9 @@
           <h3 style="color: var(--accent-blue); margin-bottom: 10px;">🏷️ Personalización del Ticket de Impresión</h3>
           <form id="formConfigTicket" onsubmit="guardarConfigTicket(event)" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
             <div>
-              <div class="field-group"><label>Nombre de la Empresa / Sucursal:</label><input type="text" id="cfgEmpresa" value="Super Toñita - Los Fuentes" required></div>
-              <div class="field-group"><label>Dirección Física / Ubicación:</label><input type="text" id="cfgDireccion" value="Los Fuentes"></div>
-              <div class="field-group"><label>RFC / Registro Fiscal / Teléfono:</label><input type="text" id="cfgTelefono" value="Tel: Los Fuentes"></div>
+              <div class="field-group"><label>Nombre de la Empresa / Sucursal:</label><input type="text" id="cfgEmpresa" value="Super Toñita - Corinto" required></div>
+              <div class="field-group"><label>Dirección Física / Ubicación:</label><input type="text" id="cfgDireccion" value="Corinto, Morazán"></div>
+              <div class="field-group"><label>RFC / Registro Fiscal / Teléfono:</label><input type="text" id="cfgTelefono" value="Tel: Corinto"></div>
               <div class="field-group"><label>Mensaje de Pie de Ticket (Gracias por su compra...):</label><textarea id="cfgMensajePie" rows="3">Gracias por su compra
 vuelva pronto</textarea></div>
             </div>
@@ -628,8 +628,8 @@ vuelva pronto</textarea></div>
         <div class="field-group" style="margin-bottom: 10px;">
           <label style="font-size: 11px; font-weight: bold; color: var(--accent-blue);">FORMA DE PAGO:</label>
           <select id="selectMetodoPago" onchange="cambioMetodoPago()" style="font-weight: bold; font-size: 13px;">
-            <option value="efectivo">💵 Efectivo</option>
-            <option value="tarjeta">💳 Tarjeta </option>
+            <option value="efectivo"> Efectivo</option>
+            <option value="tarjeta"> Tarjeta </option>
           </select>
         </div>
 
@@ -665,7 +665,7 @@ vuelva pronto</textarea></div>
 
   <script>
     // --- RECUPERAR O INICIALIZAR TICKETS DESDE LOCALSTORAGE ---
-    let ticketsGuardados = JSON.parse(localStorage.getItem('pos_tickets_pendientes_fuentes') || 'null');
+    let ticketsGuardados = JSON.parse(localStorage.getItem('pos_tickets_pendientes_corinto') || 'null');
     
     let tickets = (ticketsGuardados && ticketsGuardados.length > 0) ? ticketsGuardados : [
       { id: 1, nombre: "Ticket 1", cart: [], descuento: 0, tipoDescuento: 'porcentaje', selectedIndex: -1 }
@@ -676,18 +676,18 @@ vuelva pronto</textarea></div>
       { id: "francisco_reyes", nombre: "FRANCISCO REYES", pass: "1234", rol: "admin", cajaAsignada: "Caja 1", permisos: {ventas:true, productos:true, historial:true, corte:true, reportes:true, usuarios:true, config:true} }
     ];
 
-    let departamentos = JSON.parse(localStorage.getItem('pos_deptos_fuentes') || '["Abarrotes", "Bebidas", "Carnes", "Lácteos"]');
-    let productos = JSON.parse(localStorage.getItem('pos_productos_cache_fuentes') || "[]");
-    let promociones = JSON.parse(localStorage.getItem('pos_promos_fuentes') || "[]");
-    let registeredClients = JSON.parse(localStorage.getItem('pos_clientes_fidelidad_cache_fuentes') || "[]");
-    let historialVentas = JSON.parse(localStorage.getItem('pos_historial_ventas_fuentes') || "[]");
+    let departamentos = JSON.parse(localStorage.getItem('pos_deptos_corinto') || '["Abarrotes", "Bebidas", "Carnes", "Lácteos"]');
+    let productos = JSON.parse(localStorage.getItem('pos_productos_cache_corinto') || "[]");
+    let promociones = JSON.parse(localStorage.getItem('pos_promos_corinto') || "[]");
+    let registeredClients = JSON.parse(localStorage.getItem('pos_clientes_fidelidad_cache_corinto') || "[]");
+    let historialVentas = JSON.parse(localStorage.getItem('pos_historial_ventas_corinto') || "[]");
     let codigoEdicionAnterior = null;
     let itemEditandoPrecioIndex = null;
 
-    let configTicket = JSON.parse(localStorage.getItem('pos_config_ticket_fuentes') || 'null') || {
-      empresa: "Super Toñita - Los Fuentes",
-      direccion: "Los Fuentes",
-      telefono: "Tel: Los Fuentes",
+    let configTicket = JSON.parse(localStorage.getItem('pos_config_ticket_corinto') || 'null') || {
+      empresa: "Super Toñita - Corinto",
+      direccion: "Corinto, Morazán",
+      telefono: "Tel: Corinto",
       mensajePie: "Gracias por su compra\nvuelva pronto",
       logoBase64: ""
     };
@@ -702,7 +702,7 @@ vuelva pronto</textarea></div>
 
     // --- FUNCIÓN PARA GUARDAR EL ESTADO DE LOS TICKETS EN MEMORIA LOCAL ---
     function guardarTicketsEnMemoria() {
-      localStorage.setItem('pos_tickets_pendientes_fuentes', JSON.stringify(tickets));
+      localStorage.setItem('pos_tickets_pendientes_corinto', JSON.stringify(tickets));
     }
 
     function normalizarCodigo(cadena) {
@@ -734,7 +734,7 @@ vuelva pronto</textarea></div>
       document.getElementById('permConfig').checked = esAdmin;
     }
 
-    function procesarCodigoBalanzaFuentes(val) {
+    function procesarCodigoBalanzaCorinto(val) {
       val = String(val).trim();
       if (val.length >= 7) {
         let parts = val.split('*');
@@ -766,7 +766,7 @@ vuelva pronto</textarea></div>
       const val = input.value.trim();
       if (val && !departamentos.includes(val)) {
         departamentos.push(val);
-        localStorage.setItem('pos_deptos_fuentes', JSON.stringify(departamentos));
+        localStorage.setItem('pos_deptos_corinto', JSON.stringify(departamentos));
         renderDepartamentosSelect();
         input.value = '';
       }
@@ -780,8 +780,8 @@ vuelva pronto</textarea></div>
       const valor = parseFloat(document.getElementById('promoValor').value) || 0;
 
       promociones.push({ id: Date.now(), titulo, tipo, filtro, valor });
-      localStorage.setItem('pos_promos_fuentes', JSON.stringify(promociones));
-      alert("¡Promoción agregada exitosamente en Los Fuentes!");
+      localStorage.setItem('pos_promos_corinto', JSON.stringify(promociones));
+      alert("¡Promoción agregada exitosamente en Corinto!");
       document.getElementById('formPromo').reset();
       renderTablaPromos();
     }
@@ -789,7 +789,7 @@ vuelva pronto</textarea></div>
     function eliminarPromo(id) {
       if (confirm("¿Deseas eliminar esta promoción?")) {
         promociones = promociones.filter(p => p.id !== id);
-        localStorage.setItem('pos_promos_fuentes', JSON.stringify(promociones));
+        localStorage.setItem('pos_promos_corinto', JSON.stringify(promociones));
         renderTablaPromos();
       }
     }
@@ -828,9 +828,9 @@ vuelva pronto</textarea></div>
     function cargarConfigTicketUI() {
       const emp = document.getElementById('cfgEmpresa');
       if (!emp) return;
-      emp.value = configTicket.empresa || 'Super Toñita - Los Fuentes';
+      emp.value = configTicket.empresa || 'Super Toñita - Corinto';
       document.getElementById('cfgDireccion').value = configTicket.direccion || '';
-      document.getElementById('cfgTelefono').value = configTicket.telefono || 'Tel: Los Fuentes';
+      document.getElementById('cfgTelefono').value = configTicket.telefono || 'Tel: Corinto';
       document.getElementById('cfgMensajePie').value = configTicket.mensajePie || '';
       
       const imgPrev = document.getElementById('cfgLogoPreview');
@@ -870,12 +870,12 @@ vuelva pronto</textarea></div>
       configTicket.telefono = document.getElementById('cfgTelefono').value.trim();
       configTicket.mensajePie = document.getElementById('cfgMensajePie').value.trim();
       
-      localStorage.setItem('pos_config_ticket_fuentes', JSON.stringify(configTicket));
+      localStorage.setItem('pos_config_ticket_corinto', JSON.stringify(configTicket));
 
       if (window.db && window.setDoc && window.doc) {
         try {
           await window.setDoc(window.doc(window.db, "configuracion", "ticket"), configTicket);
-          alert("¡Datos del ticket guardados y sincronizados en Los Fuentes!");
+          alert("¡Datos del ticket guardados y sincronizados en Corinto!");
         } catch (err) {
           console.warn("Error al guardar en nube:", err);
           alert("¡Datos del ticket guardados localmente!");
@@ -905,7 +905,7 @@ vuelva pronto</textarea></div>
           window.getDoc(window.doc(window.db, "configuracion", "ticket")).then((docSnap) => {
             if (docSnap.exists() && docSnap.data()) {
               configTicket = docSnap.data();
-              localStorage.setItem('pos_config_ticket_fuentes', JSON.stringify(configTicket));
+              localStorage.setItem('pos_config_ticket_corinto', JSON.stringify(configTicket));
               cargarConfigTicketUI();
             }
           }).catch(err => console.log("Cargando config local..."));
@@ -932,7 +932,7 @@ vuelva pronto</textarea></div>
             let loaded = [];
             snapshot.forEach(docSnap => loaded.push(docSnap.data()));
             productos = loaded;
-            localStorage.setItem('pos_productos_cache_fuentes', JSON.stringify(productos));
+            localStorage.setItem('pos_productos_cache_corinto', JSON.stringify(productos));
             renderTablaCatalogo();
           });
 
@@ -943,7 +943,7 @@ vuelva pronto</textarea></div>
             });
             loadedVentas.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
             historialVentas = loadedVentas;
-            localStorage.setItem('pos_historial_ventas_fuentes', JSON.stringify(historialVentas));
+            localStorage.setItem('pos_historial_ventas_corinto', JSON.stringify(historialVentas));
             
             if (document.getElementById('historialView').classList.contains('active')) filtrarHistorialTickets();
             if (document.getElementById('reportesView').classList.contains('active')) actualizarReportes();
@@ -959,7 +959,7 @@ vuelva pronto</textarea></div>
               }
             });
             registeredClients = loadedClients;
-            localStorage.setItem('pos_clientes_fidelidad_cache_fuentes', JSON.stringify(registeredClients));
+            localStorage.setItem('pos_clientes_fidelidad_cache_corinto', JSON.stringify(registeredClients));
           });
         }
       }, 200);
@@ -997,7 +997,7 @@ vuelva pronto</textarea></div>
 
       document.getElementById('loginScreen').style.display = 'none';
 
-      let turnoKey = `pos_turno_fuentes_${cajaActualSeleccionada.replace(/\s+/g, '_')}`;
+      let turnoKey = `pos_turno_corinto_${cajaActualSeleccionada.replace(/\s+/g, '_')}`;
       let turnoCaja = JSON.parse(localStorage.getItem(turnoKey) || 'null');
 
       if (turnoCaja && turnoCaja.activo) {
@@ -1025,7 +1025,7 @@ vuelva pronto</textarea></div>
 
     function iniciarTurnoCaja() {
       const fondo = parseFloat(document.getElementById('fondoInicialInput').value) || 0;
-      let turnoKey = `pos_turno_fuentes_${cajaActualSeleccionada.replace(/\s+/g, '_')}`;
+      let turnoKey = `pos_turno_corinto_${cajaActualSeleccionada.replace(/\s+/g, '_')}`;
       let nuevoTurno = {
         caja: cajaActualSeleccionada,
         fondoInicial: fondo,
@@ -1120,7 +1120,7 @@ vuelva pronto</textarea></div>
       let cantidad = 1;
       let codigo = val;
       
-      const balanzaData = procesarCodigoBalanzaFuentes(val);
+      const balanzaData = procesarCodigoBalanzaCorinto(val);
       if (balanzaData) {
         codigo = balanzaData.codigo;
         cantidad = balanzaData.cantidad;
@@ -1367,7 +1367,7 @@ vuelva pronto</textarea></div>
       const idx = productos.findIndex(p => productoCoincideConCodigo(p, primerCodigo));
       if (idx > -1) productos[idx] = nuevo; else productos.push(nuevo);
 
-      localStorage.setItem('pos_productos_cache_fuentes', JSON.stringify(productos));
+      localStorage.setItem('pos_productos_cache_corinto', JSON.stringify(productos));
       if (window.db && window.setDoc && window.doc) {
         window.setDoc(window.doc(window.db, "productos", primerCodigo), nuevo);
       }
@@ -1400,7 +1400,7 @@ vuelva pronto</textarea></div>
       const primerCodigo = cod.split(',')[0].trim();
       if (confirm(`¿Eliminar producto con código(s) ${cod}?`)) {
         productos = productos.filter(p => !productoCoincideConCodigo(p, primerCodigo));
-        localStorage.setItem('pos_productos_cache_fuentes', JSON.stringify(productos));
+        localStorage.setItem('pos_productos_cache_corinto', JSON.stringify(productos));
         if (window.db && window.deleteDoc && window.doc) window.deleteDoc(window.doc(window.db, "productos", primerCodigo));
         renderTablaCatalogo();
       }
@@ -1468,7 +1468,7 @@ vuelva pronto</textarea></div>
       if (window.db && window.setDoc && window.doc) {
         try {
           await window.setDoc(window.doc(window.db, "usuarios", id), nuevoUsuario);
-          alert(`¡Cajero ${nombre} guardado y sincronizado en Los Fuentes!`);
+          alert(`¡Cajero ${nombre} guardado y sincronizado en Corinto!`);
         } catch (err) {
           console.warn("Guardado localmente, error en nube:", err);
           alert(`¡Cajero ${nombre} guardado localmente!`);
@@ -1600,7 +1600,7 @@ vuelva pronto</textarea></div>
       let telefono = document.getElementById('inputCobroTelefono').value.replace(/\s+/g, '').replace(/-/g, '').trim();
       let nombreCliente = document.getElementById('inputCobroNombre').value.trim();
 
-      if (!nombreCliente) nombreCliente = "Cliente Los Fuentes";
+      if (!nombreCliente) nombreCliente = "Cliente Corinto";
 
       const folioUnico = `TK-${Date.now().toString().slice(-6)}`;
 
@@ -1637,11 +1637,11 @@ vuelva pronto</textarea></div>
         }
 
         const puntosGanados = Math.floor(ventaObj.total);
-        const enlaceTicketWeb = `https://supertonita.github.io/Eleventa-LosFuentes/ticket.html?folio=${folioUnico}`;
+        const enlaceTicketWeb = `https://supertonita.github.io/Eleventa-Corinto/ticket.html?folio=${folioUnico}`;
 
         const mensajeWhatsApp = 
           `Estimado/a *${nombreCliente}*:\n\n` +
-          `Muchas gracias por su compra en *${configTicket.empresa || 'Super Toñita - Los Fuentes'}*.\n\n` +
+          `Muchas gracias por su compra en *${configTicket.empresa || 'Super Toñita - Corinto'}*.\n\n` +
           `*Monto Total:* $${ventaObj.total.toFixed(2)} (${ventaObj.metodoPago.toUpperCase()})\n` +
           `*Puntos Acumulados:* +${puntosGanados} pts\n\n` +
           `*Consulte su comprobante digital y detalle de compra aquí:*\n` +
@@ -1687,9 +1687,9 @@ vuelva pronto</textarea></div>
       if (!historialVentas.some(v => v.folio === folioUnico)) {
         historialVentas.unshift(ventaObj);
       }
-      localStorage.setItem('pos_historial_ventas_fuentes', JSON.stringify(historialVentas));
+      localStorage.setItem('pos_historial_ventas_corinto', JSON.stringify(historialVentas));
 
-      let turnoKey = `pos_turno_fuentes_${cajaActualSeleccionada.replace(/\s+/g, '_')}`;
+      let turnoKey = `pos_turno_corinto_${cajaActualSeleccionada.replace(/\s+/g, '_')}`;
       let turnoCaja = JSON.parse(localStorage.getItem(turnoKey) || 'null');
       if (turnoCaja) {
         if (!turnoCaja.ventasTurno) turnoCaja.ventasTurno = [];
@@ -1740,11 +1740,11 @@ vuelva pronto</textarea></div>
       container.innerHTML = `
         <div id="ticketPrintDoc" style="font-family: 'Courier New', Courier, monospace; width: ${widthPx}; margin: 0 auto; padding: 5px; font-size: 14px; font-weight: bold; color: #000; background: #fff;">
           ${logoHtml}
-          <div style="text-align: center; font-family: 'Georgia', serif; font-style: italic; font-size: 20px; font-weight: bold; margin-top: 4px;">${configTicket.empresa || 'Super Toñita - Los Fuentes'}</div>
+          <div style="text-align: center; font-family: 'Georgia', serif; font-style: italic; font-size: 20px; font-weight: bold; margin-top: 4px;">${configTicket.empresa || 'Super Toñita - Corinto'}</div>
           
           <div style="text-align: center; margin-top: 6px; font-size: 13px; line-height: 1.2;">
             ${configTicket.direccion ? `${configTicket.direccion}<br>` : ''}
-            ${configTicket.telefono ? `${configTicket.telefono}<br>` : 'Tel: Los Fuentes<br>'}
+            ${configTicket.telefono ? `${configTicket.telefono}<br>` : 'Tel: Corinto<br>'}
           </div>
 
           <div style="text-align: right; margin: 8px 0 6px 0; font-size: 13px;">${fechaStr} ${horaStr}</div>
@@ -1864,7 +1864,7 @@ vuelva pronto</textarea></div>
 
       const previewDiv = document.getElementById('ticketPreviewContent');
       previewDiv.innerHTML = `
-        <div style="text-align:center; font-family:'Georgia', serif; font-style:italic; font-size:16px; font-weight:bold;">${configTicket.empresa || 'Super Toñita - Los Fuentes'}</div>
+        <div style="text-align:center; font-family:'Georgia', serif; font-style:italic; font-size:16px; font-weight:bold;">${configTicket.empresa || 'Super Toñita - Corinto'}</div>
         <div style="text-align:center; font-size:10px; color:#555;">${configTicket.direccion || ''}</div>
         <div style="text-align:right; margin:4px 0;">${new Date(ticketSeleccionadoPreview.fecha).toLocaleString()}</div>
         <b>Cajero:</b> ${ticketSeleccionadoPreview.cajero}<br>
@@ -1895,7 +1895,7 @@ vuelva pronto</textarea></div>
       document.getElementById('lblCorteCajaNombre').innerText = cajaActualSeleccionada;
       document.getElementById('lblCorteCajaSub').innerText = cajaActualSeleccionada;
 
-      let turnoKey = `pos_turno_fuentes_${cajaActualSeleccionada.replace(/\s+/g, '_')}`;
+      let turnoKey = `pos_turno_corinto_${cajaActualSeleccionada.replace(/\s+/g, '_')}`;
       let turnoCaja = JSON.parse(localStorage.getItem(turnoKey) || 'null');
 
       let fondo = turnoCaja ? turnoCaja.fondoInicial : 0;
@@ -1943,7 +1943,7 @@ vuelva pronto</textarea></div>
     function cerrarTurno() {
       if (confirm(`¿Deseas cerrar el turno de la ${cajaActualSeleccionada} y entregar la caja?`)) {
         alert("Turno cerrado con éxito. Se ha limpiado el acumulado.");
-        let turnoKey = `pos_turno_fuentes_${cajaActualSeleccionada.replace(/\s+/g, '_')}`;
+        let turnoKey = `pos_turno_corinto_${cajaActualSeleccionada.replace(/\s+/g, '_')}`;
         localStorage.removeItem(turnoKey);
         cerrarSesion();
       }
@@ -2129,7 +2129,7 @@ vuelva pronto</textarea></div>
       }
 
       let dataSheet = [
-        [configTicket.empresa || "SUPER TOÑITA - LOS FUENTES"],
+        [configTicket.empresa || "SUPER TOÑITA - CORINTO"],
         ["REPORTE DE UTILIDAD POR PRODUCTO"],
         [textoRango],
         [], 
@@ -2198,7 +2198,7 @@ vuelva pronto</textarea></div>
 
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Utilidad_Por_Producto");
-      XLSX.writeFile(wb, `Reporte_Utilidad_LosFuentes_${new Date().toISOString().slice(0,10)}.xlsx`);
+      XLSX.writeFile(wb, `Reporte_Utilidad_Corinto_${new Date().toISOString().slice(0,10)}.xlsx`);
     }
 
     function importarExcelProductos(e) {
@@ -2274,14 +2274,14 @@ vuelva pronto</textarea></div>
             importadosCount++;
           }
 
-          localStorage.setItem('pos_productos_cache_fuentes', JSON.stringify(productos));
+          localStorage.setItem('pos_productos_cache_corinto', JSON.stringify(productos));
           
           alert(`¡Proceso de importación completado!\n\n✅ Productos actualizados / agregados: ${importadosCount}\n⚠️ Filas omitidas (sin código/nombre): ${omitidosCount}`);
           renderTablaCatalogo();
 
         } catch (err) {
           console.error("Error al procesar el Excel:", err);
-          alert("Ocurrió un error al leer el archivo Excel. Asegúrate de que sea un archivo .xlsx o .csv válido.");
+          alert("Ocurrió un error al leer el archivo Excel. Asegúrate de que seja un archivo .xlsx o .csv válido.");
         }
       };
 
