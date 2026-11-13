@@ -817,7 +817,7 @@
     let chartSalesBarInstance = null;
     let chartDeptosInstance = null;
 
-    // 🕒 FECHA Y HORA DE EL SALVADOR (UTC-6) STRICT
+    // 🕒 HORA OFICIAL DE EL SALVADOR (UTC-6) BLINDADA CONTRA DESCUADRES
     function obtenerFechaHoraLocalISO() {
       const d = new Date();
       const options = { timeZone: 'America/El_Salvador', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
@@ -1229,7 +1229,7 @@
       }
     }
 
-    // ⚡ CARGA ULTRA OPTIMIZADA CON CACHÉ LOCAL Y CONSULTAS PAGINADAS (AUMENTADO A 500 PARA HISTORIAL EXTENDIDO DE ADMIN)
+    // ⚡ CARGA ULTRA OPTIMIZADA CON CACHÉ LOCAL Y CONSULTAS PAGINADAS
     async function sincronizarDatosCargaUnica(forzarServidor = false) {
       if (!window.db) return;
       try {
@@ -1258,6 +1258,7 @@
           }
           usuarios = loadedUsers;
           renderLoginUsers();
+          renderTablaUsuarios();
         }
 
         // 2. Productos (Lectura de Caché primero)
@@ -1278,7 +1279,7 @@
           renderTablaCatalogo();
         }
 
-        // 3. Ventas (Consulta Paginada a 500 documentos para capturar días anteriores completos en Admin)
+        // 3. Ventas (Consulta Paginada a 500 documentos)
         const qVentas = window.query(
           window.collection(window.db, "ventas"),
           window.orderBy("fecha", "desc"),
@@ -1348,7 +1349,7 @@
       }
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
       renderDepartamentosSelect();
       renderLoginUsers();
       renderTablaUsuarios();
@@ -1357,6 +1358,8 @@
       cargarConfigTicketUI();
       renderTicketTabs();
       renderCart();
+
+      await sincronizarDatosCargaUnica(false);
 
       const hoyStr = obtenerFechaHoyYMD();
       document.getElementById('repFechaDesde').value = hoyStr;
@@ -1396,17 +1399,6 @@
       aplicarPermisosNavegacion();
 
       document.getElementById('loginScreen').style.display = 'none';
-
-      // 🚀 CONDICIÓN INTELIGENTE POR ROL:
-      // Si es Admin, sincronizamos todo de la nube. Si es Cajero, evitamos consultas pesadas y usamos caché local.
-      if (window.db && window.getDocs && window.collection) {
-        if (usuarioActual.rol === 'admin' || usuarioActual.nombre === "FRANCISCO REYES") {
-          console.log("Iniciando sesión como Administrador: Cargando datos completos de la nube...");
-          sincronizarDatosCargaUnica(false);
-        } else {
-          console.log("Iniciando sesión como Cajero: Usando caché local optimizada sin lecturas extra en la nube.");
-        }
-      }
 
       let turnoKey = `pos_turno_corinto_${cajaActualSeleccionada.replace(/\s+/g, '_')}`;
       let turnoCaja = JSON.parse(localStorage.getItem(turnoKey) || 'null');
@@ -2050,7 +2042,8 @@
         }
 
         const puntosGanados = Math.floor(ventaObj.total);
-        const enlaceTicketWeb = `https://supertonita.github.io/Eleventa-Corinto/ticket.html?folio=${folioUnico}`;
+        // 🔗 ENLACE CORREGIDO CON EL REPOSITORIO EN MINÚSCULAS
+        const enlaceTicketWeb = `https://supertonita.github.io/eleventa-corinto/ticket.html?folio=${folioUnico}`;
 
         const mensajeWhatsApp = 
           `Estimado/a *${nombreCliente}*:\n\n` +
@@ -2088,7 +2081,7 @@
 
       const ventaObj = {
         folio: folioUnico,
-        fecha: obtenerFechaHoraLocalISO(),
+        fecha: obtenerFechaHoraLocalISO(), // 🕒 Hora exacta sincronizada con El Salvador
         cajero: usuarioActual.nombre,
         caja: cajaActualSeleccionada,
         metodoPago: metodoPago,
