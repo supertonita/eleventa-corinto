@@ -800,6 +800,7 @@
 
     let codigoEdicionAnterior = null;
     let itemEditandoPrecioIndex = null;
+    let cobrandoAhora = false;
 
     let configTicket = JSON.parse(localStorage.getItem('pos_config_ticket_corinto') || 'null') || {
       empresa: "Super Toñita - Corinto",
@@ -817,7 +818,6 @@
     let chartSalesBarInstance = null;
     let chartDeptosInstance = null;
 
-    // 🕒 HORA OFICIAL DE EL SALVADOR (UTC-6) BLINDADA CONTRA DESCUADRES
     function obtenerFechaHoraLocalISO() {
       const d = new Date();
       const options = { timeZone: 'America/El_Salvador', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
@@ -836,7 +836,6 @@
       return `${year}-${month}-${day}T${hour}:${minute}:${second}`;
     }
 
-    // 📅 DÍA LOCAL DE EL SALVADOR YYYY-MM-DD
     function obtenerFechaHoyYMD() {
       const d = new Date();
       const options = { timeZone: 'America/El_Salvador', year: 'numeric', month: '2-digit', day: '2-digit' };
@@ -1229,13 +1228,9 @@
       }
     }
 
-    // ⚡ CARGA ULTRA OPTIMIZADA CON CACHÉ LOCAL Y CONSULTAS PAGINADAS
     async function sincronizarDatosCargaUnica(forzarServidor = false) {
       if (!window.db) return;
       try {
-        console.log(`Iniciando sincronización optimizada en Corinto (${forzarServidor ? 'DESDE SERVIDOR' : 'DESDE CACHÉ LOCAL'})...`);
-
-        // 1. Usuarios (Lectura de Caché primero)
         let usersSnap;
         try {
           usersSnap = forzarServidor 
@@ -1261,7 +1256,6 @@
           renderTablaUsuarios();
         }
 
-        // 2. Productos (Lectura de Caché primero)
         let prodsSnap;
         try {
           prodsSnap = forzarServidor 
@@ -1279,7 +1273,6 @@
           renderTablaCatalogo();
         }
 
-        // 3. Ventas (Consulta Paginada a 500 documentos)
         const qVentas = window.query(
           window.collection(window.db, "ventas"),
           window.orderBy("fecha", "desc"),
@@ -1321,7 +1314,6 @@
           }
         }
 
-        // 4. Clientes Fidelidad
         let clientsSnap;
         try {
           clientsSnap = forzarServidor 
@@ -1342,8 +1334,6 @@
           registeredClients = loadedClients;
           localStorage.setItem('pos_clientes_fidelidad_cache_corinto', JSON.stringify(registeredClients));
         }
-
-        console.log("¡Sincronización optimizada completada en Corinto!");
       } catch (err) {
         console.warn("Operando con caché local en Corinto:", err);
       }
@@ -1664,31 +1654,32 @@
       const t = getActiveTicket();
 
       if (modalPagoLuz) {
-        if (e.key === 'Enter') { e.preventDefault(); agregarReciboLuzAlCarrito(); return; }
-        if (e.key === 'Escape') { cerrarModalPagoLuz(); return; }
+        if (e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); agregarReciboLuzAlCarrito(); return; }
+        if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); cerrarModalPagoLuz(); return; }
       }
 
       if (modalBuscador) {
         if (e.key === 'ArrowDown') { e.preventDefault(); if (buscadorResultados.length > 0) { buscadorSelectedIndex = Math.min(buscadorResultados.length - 1, buscadorSelectedIndex + 1); renderTablaBuscadorModal(); } return; }
         if (e.key === 'ArrowUp') { e.preventDefault(); if (buscadorResultados.length > 0) { buscadorSelectedIndex = Math.max(0, buscadorSelectedIndex - 1); renderTablaBuscadorModal(); } return; }
-        if (e.key === 'Enter') { e.preventDefault(); seleccionarProdBuscadorDirecto(buscadorSelectedIndex); return; }
-        if (e.key === 'Escape') { cerrarBuscadorModal(); return; }
+        if (e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); seleccionarProdBuscadorDirecto(buscadorSelectedIndex); return; }
+        if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); cerrarBuscadorModal(); return; }
       }
 
       if (modalCobro) {
-        if (e.key === 'F1') { e.preventDefault(); ejecutarCobroInteligente(true); return; }
-        if (e.key === 'F2') { e.preventDefault(); ejecutarCobroInteligente(false); return; }
-        if (e.key === 'Escape') { cerrarModalCobro(); return; }
+        if (e.key === 'F1') { e.preventDefault(); e.stopImmediatePropagation(); ejecutarCobroInteligente(true); return; }
+        if (e.key === 'F2') { e.preventDefault(); e.stopImmediatePropagation(); ejecutarCobroInteligente(false); return; }
+        if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); cerrarModalCobro(); return; }
+        return;
       }
 
       if (modalEditarPrecio) {
-        if (e.key === 'Enter') { e.preventDefault(); guardarNuevoPrecioItem(); return; }
-        if (e.key === 'Escape') { cerrarModalEditarPrecio(); return; }
+        if (e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); guardarNuevoPrecioItem(); return; }
+        if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); cerrarModalEditarPrecio(); return; }
       }
 
       if (modalNuevoTicket) {
-        if (e.key === 'Enter') { e.preventDefault(); crearNuevoTicketConfirmar(); return; }
-        if (e.key === 'Escape') { cerrarModalNuevoTicket(); return; }
+        if (e.key === 'Enter') { e.preventDefault(); e.stopImmediatePropagation(); crearNuevoTicketConfirmar(); return; }
+        if (e.key === 'Escape') { e.preventDefault(); e.stopImmediatePropagation(); cerrarModalNuevoTicket(); return; }
       }
 
       if (posActive && !modalBuscador && !modalCobro && !modalEditarPrecio && !modalNuevoTicket && !modalPagoLuz) {
@@ -1704,7 +1695,7 @@
       if (e.key === 'F5') { e.preventDefault(); abrirModalNuevoTicket(); }
       if (e.key === 'F11') { e.preventDefault(); abrirBuscadorModal(); }
       if (e.key === 'F12') { e.preventDefault(); abrirModalCobro(); }
-    });
+    }, true);
 
     function abrirBuscadorModal() {
       document.getElementById('buscadorModal').classList.add('active');
@@ -1944,7 +1935,11 @@
       }
     }
 
-    function cerrarModalCobro() { document.getElementById('cobroModal').classList.remove('active'); focusBarcode(); }
+    function cerrarModalCobro() {
+      document.getElementById('cobroModal').classList.remove('active');
+      cobrandoAhora = false;
+      focusBarcode();
+    }
     
     function calcularCambioCobro() {
       const totalStr = document.getElementById('modalCobroTotal').innerText.replace('$', '').trim();
@@ -2001,25 +1996,28 @@
       document.getElementById('listaSugerenciasClientes').style.display = 'none';
     }
 
-    async function ejecutarCobroInteligente(imprimirPapel) {
+    function ejecutarCobroInteligente(imprimirPapel) {
+      if (cobrandoAhora) return;
+      cobrandoAhora = true;
+
       let telefono = document.getElementById('inputCobroTelefono').value.replace(/\s+/g, '').replace(/-/g, '').trim();
       let nombreCliente = document.getElementById('inputCobroNombre').value.trim();
 
       if (!nombreCliente) nombreCliente = "Cliente Corinto";
 
       const folioUnico = generarSiguienteFolioCorrelativo();
-
-      const ventaObj = procesarYGuardarVentaConFolio(imprimirPapel, folioUnico); 
-      if (!ventaObj) return;
-
-      if (window.db && window.setDoc && window.doc) {
-        try {
-          await window.setDoc(window.doc(window.db, "tickets_digitales", folioUnico), ventaObj);
-        } catch (e) {
-          console.warn("Error al guardar ticket digital en nube:", e);
-        }
+      const ventaObj = procesarYGuardarVentaConFolio(imprimirPapel, folioUnico);
+      if (!ventaObj) {
+        cobrandoAhora = false;
+        return;
       }
 
+      if (window.db && window.setDoc && window.doc) {
+        window.setDoc(window.doc(window.db, "tickets_digitales", folioUnico), ventaObj)
+          .catch(e => console.warn("Error al guardar ticket digital en nube:", e));
+      }
+
+      let urlWhatsAppApp = null;
       if (telefono && telefono.length >= 7) {
         let telefonoCompleto = telefono;
         if (!telefonoCompleto.startsWith('503') && telefonoCompleto.length === 8) {
@@ -2028,21 +2026,17 @@
 
         const clienteExistente = registeredClients.find(c => c.phone === telefono);
         if (!clienteExistente && window.db && window.addDoc && window.collection) {
-          try {
-            const nuevoClienteData = {
-              name: nombreCliente,
-              phone: telefono,
-              points: Math.floor(ventaObj.total),
-              createdAt: obtenerFechaHoraLocalISO()
-            };
-            await window.addDoc(window.collection(window.db, "clients"), nuevoClienteData);
-          } catch (e) {
-            console.warn("Error al registrar cliente automático en Firestore:", e);
-          }
+          const nuevoClienteData = {
+            name: nombreCliente,
+            phone: telefono,
+            points: Math.floor(ventaObj.total),
+            createdAt: obtenerFechaHoraLocalISO()
+          };
+          window.addDoc(window.collection(window.db, "clients"), nuevoClienteData)
+            .catch(e => console.warn("Error al registrar cliente automático en Firestore:", e));
         }
 
         const puntosGanados = Math.floor(ventaObj.total);
-        // 🔗 ENLACE CORREGIDO CON EL REPOSITORIO EN MINÚSCULAS
         const enlaceTicketWeb = `https://supertonita.github.io/eleventa-corinto/ticket.html?folio=${folioUnico}`;
 
         const mensajeWhatsApp = 
@@ -2054,9 +2048,15 @@
           `${enlaceTicketWeb}\n\n` +
           `_Estamos para servirle. Esperamos verle pronto._`;
 
-        const urlWhatsAppApp = `whatsapp://send?phone=${telefonoCompleto}&text=${encodeURIComponent(mensajeWhatsApp)}`;
-        window.location.href = urlWhatsAppApp;
+        urlWhatsAppApp = `whatsapp://send?phone=${telefonoCompleto}&text=${encodeURIComponent(mensajeWhatsApp)}`;
       }
+
+      setTimeout(() => {
+        cobrandoAhora = false;
+        if (urlWhatsAppApp) {
+          window.open(urlWhatsAppApp, '_blank');
+        }
+      }, imprimirPapel ? 800 : 200);
     }
 
     function procesarYGuardarVentaConFolio(imprimir, folioUnico) {
@@ -2081,7 +2081,7 @@
 
       const ventaObj = {
         folio: folioUnico,
-        fecha: obtenerFechaHoraLocalISO(), // 🕒 Hora exacta sincronizada con El Salvador
+        fecha: obtenerFechaHoraLocalISO(),
         cajero: usuarioActual.nombre,
         caja: cajaActualSeleccionada,
         metodoPago: metodoPago,
@@ -2107,16 +2107,21 @@
       }
 
       if (window.db && window.setDoc && window.doc) {
-        window.setDoc(window.doc(window.db, "ventas", folioUnico), ventaObj);
+        window.setDoc(window.doc(window.db, "ventas", folioUnico), ventaObj)
+          .catch(e => console.warn("Error al guardar venta en Firestore:", e));
       }
 
-      if (imprimir) imprimirTicketTermico(ventaObj);
-
-      cerrarModalCobro();
+      document.getElementById('cobroModal').classList.remove('active');
       t.cart = []; t.selectedIndex = -1;
-      renderTicketTabs(); renderCart(); focusBarcode();
+      renderTicketTabs(); renderCart();
       guardarTicketsEnMemoria();
       actualizarCorteCaja();
+
+      if (imprimir) {
+        imprimirTicketTermico(ventaObj);
+      } else {
+        focusBarcode();
+      }
 
       return ventaObj;
     }
@@ -2220,22 +2225,25 @@
         </div>
       `;
 
-      new QRCode(document.getElementById("qrTiendaInline"), { 
-        text: urlTiendaBase, 
-        width: 200, 
-        height: 200,
-        correctLevel: QRCode.CorrectLevel.M 
-      });
+      if (typeof QRCode !== 'undefined') {
+        new QRCode(document.getElementById("qrTiendaInline"), { 
+          text: urlTiendaBase, 
+          width: 200, 
+          height: 200,
+          correctLevel: QRCode.CorrectLevel.M 
+        });
 
-      new QRCode(document.getElementById("qrPuntosInline"), { 
-        text: datosCanjeJSON, 
-        width: 200, 
-        height: 200,
-        correctLevel: QRCode.CorrectLevel.M 
-      });
+        new QRCode(document.getElementById("qrPuntosInline"), { 
+          text: datosCanjeJSON, 
+          width: 200, 
+          height: 200,
+          correctLevel: QRCode.CorrectLevel.M 
+        });
+      }
 
       setTimeout(() => {
         window.print();
+        focusBarcode();
       }, 300);
     }
 
