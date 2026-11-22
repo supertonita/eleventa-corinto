@@ -103,9 +103,11 @@
     .view-section { display: none; flex: 1; flex-direction: column; height: 100%; overflow-y: auto; }
     .view-section.active { display: flex; }
 
-    .title-bar-dark { background: #1e3a5f; color: #fff; font-weight: bold; padding: 8px 15px; font-size: 14px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; border-radius: 0 0 10px 10px; }
+    .title-bar-dark { background: #1e3a5f; color: #fff; font-weight: bold; padding: 8px 15px; font-size: 14px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; border-radius: 0 0 10px 10px; gap: 10px; }
     .title-bar-green { background: var(--green-corte); color: #fff; font-weight: bold; padding: 8px 15px; font-size: 14px; text-transform: uppercase; border-radius: 0 0 10px 10px; }
     .title-bar-yellow { background: var(--yellow-bar); color: #fff; font-weight: bold; padding: 8px 15px; font-size: 14px; text-transform: uppercase; border-radius: 0 0 10px 10px; }
+
+    .last-item-pill { background: #28a745; color: #fff; padding: 3px 10px; border-radius: 15px; font-size: 11px; font-weight: bold; text-transform: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 360px; }
 
     .sub-menu-bar { background: #e5eaf1; border-bottom: 1px solid var(--border-color); padding: 6px 15px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .op-btn { background: linear-gradient(to bottom, #ffffff, #e1e6ed); border: 1px solid #9aa7b6; padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 11px; font-weight: bold; }
@@ -215,8 +217,11 @@
       <div class="ticket-tabs-bar" id="ticketTabsContainer"></div>
 
       <div class="title-bar-dark">
-        <span>VENTA - Ticket Actual (<span id="lblActiveTicketName">Ticket 1</span>)</span>
-        <div style="display: flex; gap: 6px;">
+        <div style="display:flex; align-items:center; gap:10px; overflow:hidden;">
+          <span>VENTA - Ticket Actual (<span id="lblActiveTicketName">Ticket 1</span>)</span>
+          <span id="lblUltimoItemAgregado" class="last-item-pill" style="display:none;"></span>
+        </div>
+        <div style="display: flex; gap: 6px; flex-shrink:0;">
           <button class="btn-new-ticket" style="background:#28a745;" onclick="abrirModalPagoLuz()">⚡ Pago de Luz</button>
           <button class="btn-new-ticket" style="background:#007bff;" onclick="abrirBuscadorModal()">🔍 Buscar Producto (F11)</button>
           <button class="btn-new-ticket" onclick="abrirModalNuevoTicket()">➕ Nuevo Ticket (F5)</button>
@@ -235,7 +240,7 @@
         </form>
       </div>
 
-      <div class="table-container">
+      <div class="table-container" id="cartTableContainer">
         <table>
           <thead>
             <tr>
@@ -801,6 +806,7 @@
     let codigoEdicionAnterior = null;
     let itemEditandoPrecioIndex = null;
     let cobrandoAhora = false;
+    let ultimoAvisoTimer = null;
 
     let configTicket = JSON.parse(localStorage.getItem('pos_config_ticket_corinto') || 'null') || {
       empresa: "Super Toñita - Corinto",
@@ -817,6 +823,48 @@
     let ticketSeleccionadoPreview = null;
     let chartSalesBarInstance = null;
     let chartDeptosInstance = null;
+
+    function mostrarAvisoUltimoItem(texto) {
+      const pill = document.getElementById('lblUltimoItemAgregado');
+      if (!pill) return;
+      pill.innerText = `✔ ${texto}`;
+      pill.style.display = 'inline-block';
+      if (ultimoAvisoTimer) clearTimeout(ultimoAvisoTimer);
+      ultimoAvisoTimer = setTimeout(() => {
+        pill.style.display = 'none';
+      }, 3500);
+    }
+
+    function insertarOActualizarItemAlPrincipio(ticketObj, itemData, cantidadSumar, codigoRef) {
+      if (!ticketObj) return;
+      const idx = ticketObj.cart.findIndex(i => productoCoincideConCodigo(i, codigoRef));
+      let itemFinal;
+      if (idx > -1) {
+        const existente = ticketObj.cart[idx];
+        ticketObj.cart.splice(idx, 1);
+        itemFinal = {
+          ...existente,
+          cantidad: (Number(existente.cantidad) || 0) + (Number(cantidadSumar) || 0)
+        };
+      } else {
+        itemFinal = {
+          ...itemData,
+          cantidad: Number(cantidadSumar) || 1
+        };
+      }
+      ticketObj.cart.unshift(itemFinal);
+      ticketObj.selectedIndex = 0;
+
+      const precioUnit = itemFinal.precioAplicado !== undefined ? itemFinal.precioAplicado : itemFinal.precio;
+      const importeItem = (Number(precioUnit) || 0) * (Number(itemFinal.cantidad) || 0);
+      mostrarAvisoUltimoItem(`${itemFinal.descripcion} (${itemFinal.cantidad.toFixed(2)}) = $${importeItem.toFixed(2)}`);
+
+      renderCart();
+      renderTicketTabs();
+      guardarTicketsEnMemoria();
+      const cont = document.getElementById('cartTableContainer');
+      if (cont) cont.scrollTop = 0;
+    }
 
     function obtenerFechaHoraLocalISO() {
       const d = new Date();
@@ -980,11 +1028,7 @@
         existencia: 9999
       };
 
-      t.cart.push(itemLuz);
-      t.selectedIndex = t.cart.length - 1;
-      renderCart();
-      renderTicketTabs();
-      guardarTicketsEnMemoria();
+      insertarOActualizarItemAlPrincipio(t, itemLuz, 1, itemLuz.codigo);
       cerrarModalPagoLuz();
     }
 
@@ -1530,17 +1574,10 @@
       const t = getActiveTicket();
 
       if (prod) {
-        const idx = t.cart.findIndex(i => productoCoincideConCodigo(i, codigoBusqueda));
-        if (idx > -1) { 
-          t.cart[idx].cantidad += cantidad; 
-          t.selectedIndex = idx; 
-        } else { 
-          t.cart.push({ ...prod, cantidad }); 
-          t.selectedIndex = t.cart.length - 1; 
-        }
-        renderCart(); renderTicketTabs();
-        guardarTicketsEnMemoria();
-      } else { alert("Producto no encontrado."); }
+        insertarOActualizarItemAlPrincipio(t, prod, cantidad, codigoBusqueda);
+      } else {
+        alert("Producto no encontrado.");
+      }
       inputEl.value = '';
       focusBarcode();
     }
@@ -1722,7 +1759,12 @@
       `).join('');
     }
     function seleccionarProdBuscadorDirecto(idx) {
-      if (buscadorResultados[idx]) { document.getElementById('barcodeInput').value = obtenerPrimerCodigo(buscadorResultados[idx].codigo); agregarProductoEnter(); cerrarBuscadorModal(); }
+      if (buscadorResultados[idx]) {
+        const prod = buscadorResultados[idx];
+        const primerCod = obtenerPrimerCodigo(prod.codigo);
+        insertarOActualizarItemAlPrincipio(getActiveTicket(), prod, 1, primerCod);
+        cerrarBuscadorModal();
+      }
     }
 
     function recalcularPrecios(origen) {
@@ -2000,110 +2042,136 @@
       if (cobrandoAhora) return;
       cobrandoAhora = true;
 
-      let telefono = document.getElementById('inputCobroTelefono').value.replace(/\s+/g, '').replace(/-/g, '').trim();
-      let nombreCliente = document.getElementById('inputCobroNombre').value.trim();
+      try {
+        let telefono = document.getElementById('inputCobroTelefono').value.replace(/\s+/g, '').replace(/-/g, '').trim();
+        let nombreCliente = document.getElementById('inputCobroNombre').value.trim() || "Cliente Corinto";
 
-      if (!nombreCliente) nombreCliente = "Cliente Corinto";
+        const folioUnico = generarSiguienteFolioCorrelativo();
+        const ventaObj = procesarYGuardarVentaConFolio(imprimirPapel, folioUnico);
+        if (!ventaObj) return;
 
-      const folioUnico = generarSiguienteFolioCorrelativo();
-      const ventaObj = procesarYGuardarVentaConFolio(imprimirPapel, folioUnico);
-      if (!ventaObj) {
-        cobrandoAhora = false;
-        return;
-      }
-
-      if (window.db && window.setDoc && window.doc) {
-        window.setDoc(window.doc(window.db, "tickets_digitales", folioUnico), ventaObj)
-          .catch(e => console.warn("Error al guardar ticket digital en nube:", e));
-      }
-
-      let urlWhatsAppApp = null;
-      if (telefono && telefono.length >= 7) {
-        let telefonoCompleto = telefono;
-        if (!telefonoCompleto.startsWith('503') && telefonoCompleto.length === 8) {
-          telefonoCompleto = '503' + telefonoCompleto;
+        if (window.db && window.setDoc && window.doc) {
+          window.setDoc(window.doc(window.db, "tickets_digitales", folioUnico), ventaObj)
+            .catch(e => console.warn("Error al guardar ticket digital en nube:", e));
         }
 
-        const clienteExistente = registeredClients.find(c => c.phone === telefono);
-        if (!clienteExistente && window.db && window.addDoc && window.collection) {
-          const nuevoClienteData = {
-            name: nombreCliente,
-            phone: telefono,
-            points: Math.floor(ventaObj.total),
-            createdAt: obtenerFechaHoraLocalISO()
-          };
-          window.addDoc(window.collection(window.db, "clients"), nuevoClienteData)
-            .catch(e => console.warn("Error al registrar cliente automático en Firestore:", e));
+        if (telefono && telefono.length >= 7) {
+          let telefonoCompleto = telefono;
+          if (!telefonoCompleto.startsWith('503') && telefonoCompleto.length === 8) {
+            telefonoCompleto = '503' + telefonoCompleto;
+          }
+
+          const clienteExistente = registeredClients.find(c => c.phone === telefono);
+          if (!clienteExistente && window.db && window.addDoc && window.collection) {
+            const nuevoClienteData = {
+              name: nombreCliente,
+              phone: telefono,
+              points: Math.floor(ventaObj.total),
+              createdAt: obtenerFechaHoraLocalISO()
+            };
+            window.addDoc(window.collection(window.db, "clients"), nuevoClienteData)
+              .catch(e => console.warn("Error al registrar cliente automático en Firestore:", e));
+          }
+
+          const puntosGanados = Math.floor(ventaObj.total);
+          const enlaceTicketWeb = `https://supertonita.github.io/eleventa-corinto/ticket.html?folio=${folioUnico}`;
+
+          const mensajeWhatsApp = 
+            `Estimado/a *${nombreCliente}*:\n\n` +
+            `Muchas gracias por su compra en *${configTicket.empresa || 'Super Toñita - Corinto'}*.\n\n` +
+            `*Monto Total:* $${ventaObj.total.toFixed(2)} (${ventaObj.metodoPago.toUpperCase()})\n` +
+            `*Puntos Acumulados:* +${puntosGanados} pts\n\n` +
+            `*Consulte su comprobante digital y detalle de compra aquí:*\n` +
+            `${enlaceTicketWeb}\n\n` +
+            `_Estamos para servirle. Esperamos verle pronto._`;
+
+          const urlWhatsAppApp = `whatsapp://send?phone=${telefonoCompleto}&text=${encodeURIComponent(mensajeWhatsApp)}`;
+          setTimeout(() => {
+            window.open(urlWhatsAppApp, '_blank');
+          }, imprimirPapel ? 900 : 250);
         }
-
-        const puntosGanados = Math.floor(ventaObj.total);
-        const enlaceTicketWeb = `https://supertonita.github.io/eleventa-corinto/ticket.html?folio=${folioUnico}`;
-
-        const mensajeWhatsApp = 
-          `Estimado/a *${nombreCliente}*:\n\n` +
-          `Muchas gracias por su compra en *${configTicket.empresa || 'Super Toñita - Corinto'}*.\n\n` +
-          `*Monto Total:* $${ventaObj.total.toFixed(2)} (${ventaObj.metodoPago.toUpperCase()})\n` +
-          `*Puntos Acumulados:* +${puntosGanados} pts\n\n` +
-          `*Consulte su comprobante digital y detalle de compra aquí:*\n` +
-          `${enlaceTicketWeb}\n\n` +
-          `_Estamos para servirle. Esperamos verle pronto._`;
-
-        urlWhatsAppApp = `whatsapp://send?phone=${telefonoCompleto}&text=${encodeURIComponent(mensajeWhatsApp)}`;
+      } finally {
+        setTimeout(() => {
+          cobrandoAhora = false;
+        }, 150);
       }
-
-      setTimeout(() => {
-        cobrandoAhora = false;
-        if (urlWhatsAppApp) {
-          window.open(urlWhatsAppApp, '_blank');
-        }
-      }, imprimirPapel ? 800 : 200);
     }
 
     function procesarYGuardarVentaConFolio(imprimir, folioUnico) {
       const t = getActiveTicket();
-      if (t.cart.length === 0) { alert("El carrito está vacío."); return null; }
-      let subtotal = t.cart.reduce((a,i) => a + ((i.precioAplicado !== undefined ? i.precioAplicado : i.precio) * i.cantidad), 0);
-      let total = Math.max(0, subtotal);
-      let costoTotal = t.cart.reduce((a,i) => a + ((i.costo || 0) * i.cantidad), 0);
-      
+      if (!t || t.cart.length === 0) { alert("El carrito está vacío."); return null; }
+
+      let subtotal = 0;
+      let costoTotal = 0;
+      const itemsConPrecioFinal = t.cart.map(i => {
+        const precioFinal = i.precioAplicado !== undefined ? i.precioAplicado : i.precio;
+        const cant = Number(i.cantidad) || 0;
+        const costoUnit = Number(i.costo) || 0;
+        subtotal += precioFinal * cant;
+        costoTotal += costoUnit * cant;
+        return {
+          codigo: i.codigo,
+          descripcion: i.descripcion,
+          precio: precioFinal,
+          costo: costoUnit,
+          cantidad: cant,
+          unidad: i.unidad || 'PZA',
+          departamento: i.departamento || 'Abarrotes'
+        };
+      });
+
+      let total = Math.round(Math.max(0, subtotal) * 100) / 100;
       let metodoPago = document.getElementById('selectMetodoPago').value;
-      let paga = metodoPago === 'tarjeta' ? total : (parseFloat(document.getElementById('cobroPagaCon').value) || 0);
+      let paga = metodoPago === 'tarjeta' ? total : (Math.round((parseFloat(document.getElementById('cobroPagaCon').value) || 0) * 100) / 100);
 
-      total = Math.round(total * 100) / 100;
-      paga = Math.round(paga * 100) / 100;
-
-      if (metodoPago === 'efectivo' && paga < total) { alert("El monto pagado es menor al total."); return null; }
-
-      let itemsConPrecioFinal = t.cart.map(i => ({
-        ...i,
-        precio: i.precioAplicado !== undefined ? i.precioAplicado : i.precio
-      }));
+      if (metodoPago === 'efectivo' && paga < total) {
+        alert("El monto pagado es menor al total.");
+        return null;
+      }
 
       const ventaObj = {
         folio: folioUnico,
         fecha: obtenerFechaHoraLocalISO(),
-        cajero: usuarioActual.nombre,
+        cajero: usuarioActual ? usuarioActual.nombre : 'FRANCISCO REYES',
         caja: cajaActualSeleccionada,
         metodoPago: metodoPago,
         estado: 'valido',
-        subtotal, descuento: 0, total, costo: costoTotal, ganancia: total - costoTotal,
-        pagaCon: paga, cambio: metodoPago === 'tarjeta' ? 0 : Math.round((paga - total) * 100) / 100,
-        items: JSON.parse(JSON.stringify(itemsConPrecioFinal))
+        subtotal: total,
+        descuento: 0,
+        total: total,
+        costo: Math.round(costoTotal * 100) / 100,
+        ganancia: Math.round((total - costoTotal) * 100) / 100,
+        pagaCon: paga,
+        cambio: metodoPago === 'tarjeta' ? 0 : Math.round((paga - total) * 100) / 100,
+        items: itemsConPrecioFinal
       };
 
       if (!historialVentas.some(v => v.folio === folioUnico)) {
         historialVentas.unshift(ventaObj);
+        if (historialVentas.length > 200) {
+          historialVentas = historialVentas.slice(0, 200);
+        }
       }
-      localStorage.setItem('pos_historial_ventas_corinto', JSON.stringify(historialVentas));
+      try {
+        localStorage.setItem('pos_historial_ventas_corinto', JSON.stringify(historialVentas));
+      } catch (e) {
+        historialVentas = historialVentas.slice(0, 50);
+        localStorage.setItem('pos_historial_ventas_corinto', JSON.stringify(historialVentas));
+      }
 
       let turnoKey = `pos_turno_corinto_${cajaActualSeleccionada.replace(/\s+/g, '_')}`;
       let turnoCaja = JSON.parse(localStorage.getItem(turnoKey) || 'null');
       if (turnoCaja) {
-        if (!turnoCaja.ventasTurno) turnoCaja.ventasTurno = [];
-        if (!turnoCaja.ventasTurno.some(v => v.folio === folioUnico)) {
-          turnoCaja.ventasTurno.push(ventaObj);
-          localStorage.setItem(turnoKey, JSON.stringify(turnoCaja));
-        }
+        if (!Array.isArray(turnoCaja.ventasTurno)) turnoCaja.ventasTurno = [];
+        turnoCaja.ventasTurno.push({
+          folio: ventaObj.folio,
+          total: ventaObj.total,
+          ganancia: ventaObj.ganancia,
+          metodoPago: ventaObj.metodoPago,
+          estado: ventaObj.estado,
+          fecha: ventaObj.fecha
+        });
+        localStorage.setItem(turnoKey, JSON.stringify(turnoCaja));
       }
 
       if (window.db && window.setDoc && window.doc) {
@@ -2112,8 +2180,12 @@
       }
 
       document.getElementById('cobroModal').classList.remove('active');
-      t.cart = []; t.selectedIndex = -1;
-      renderTicketTabs(); renderCart();
+      t.cart = [];
+      t.selectedIndex = -1;
+      const pill = document.getElementById('lblUltimoItemAgregado');
+      if (pill) pill.style.display = 'none';
+      renderTicketTabs();
+      renderCart();
       guardarTicketsEnMemoria();
       actualizarCorteCaja();
 
@@ -2134,7 +2206,7 @@
         ? `<div style="text-align:center;"><img src="${configTicket.logoBase64}" style="max-width: 150px; filter: grayscale(100%); margin-bottom: 6px;"></div>` 
         : `<div style="text-align:center; font-size:38px; line-height:1;">🛒</div>`;
 
-      const fechaLimpia = venta.fecha.replace('T', ' ');
+      const fechaLimpia = (venta.fecha || '').replace('T', ' ');
       const fechaStr = fechaLimpia.slice(0, 10);
       const horaStr = fechaLimpia.slice(11, 19);
 
@@ -2225,18 +2297,23 @@
         </div>
       `;
 
-      if (typeof QRCode !== 'undefined') {
-        new QRCode(document.getElementById("qrTiendaInline"), { 
+      const qrTiendaEl = document.getElementById("qrTiendaInline");
+      const qrPuntosEl = document.getElementById("qrPuntosInline");
+      if (qrTiendaEl) qrTiendaEl.innerHTML = "";
+      if (qrPuntosEl) qrPuntosEl.innerHTML = "";
+
+      if (typeof QRCode !== 'undefined' && qrTiendaEl && qrPuntosEl) {
+        new QRCode(qrTiendaEl, { 
           text: urlTiendaBase, 
-          width: 200, 
-          height: 200,
+          width: 140, 
+          height: 140,
           correctLevel: QRCode.CorrectLevel.M 
         });
 
-        new QRCode(document.getElementById("qrPuntosInline"), { 
+        new QRCode(qrPuntosEl, { 
           text: datosCanjeJSON, 
-          width: 200, 
-          height: 200,
+          width: 140, 
+          height: 140,
           correctLevel: QRCode.CorrectLevel.M 
         });
       }
@@ -2244,7 +2321,7 @@
       setTimeout(() => {
         window.print();
         focusBarcode();
-      }, 300);
+      }, 200);
     }
 
     function filtrarHistorialTickets() {
@@ -2804,3 +2881,4 @@
   </script>
 </body>
 </html>
+  
